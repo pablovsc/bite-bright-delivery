@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SocialAuthButtons from '@/components/SocialAuthButtons';
 
 const Auth = () => {
   const { user, signIn, signUp } = useAuth();
@@ -85,6 +86,17 @@ const Auth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <SocialAuthButtons />
+                
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-muted-foreground">O con email</span>
+                  </div>
+                </div>
+
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div>
                     <Label htmlFor="signin-email">Email</Label>
@@ -123,6 +135,17 @@ const Auth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <SocialAuthButtons />
+                
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-muted-foreground">O con email</span>
+                  </div>
+                </div>
+
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div>
                     <Label htmlFor="signup-name">Nombre Completo</Label>

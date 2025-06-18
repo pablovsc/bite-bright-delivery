@@ -1,82 +1,53 @@
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Star, Clock, MapPin } from "lucide-react";
+import { Star, Clock, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { useMenu } from "@/hooks/useMenu";
+import { useCart } from "@/hooks/useCart";
+import { Cart } from "@/components/Cart";
+import { Link } from "react-router-dom";
 
 const Index = () => {
-  const [cartItems, setCartItems] = useState([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, signOut } = useAuth();
+  const { data: menuCategories, isLoading, error } = useMenu();
+  const { addItem } = useCart();
 
-  // Datos de ejemplo del menú
-  const menuCategories = [
-    {
-      id: 1,
-      name: "Platos Principales",
-      items: [
-        {
-          id: 1,
-          name: "Paella Valenciana",
-          description: "Arroz con pollo, conejo, verduras y azafrán",
-          price: 18.50,
-          image: "/placeholder.svg",
-          rating: 4.8,
-          preparationTime: "25-30 min"
-        },
-        {
-          id: 2,
-          name: "Salmón a la Plancha",
-          description: "Salmón fresco con verduras al vapor y salsa de limón",
-          price: 22.00,
-          image: "/placeholder.svg",
-          rating: 4.6,
-          preparationTime: "15-20 min"
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: "Entrantes",
-      items: [
-        {
-          id: 3,
-          name: "Croquetas de Jamón",
-          description: "6 unidades de croquetas caseras de jamón ibérico",
-          price: 8.50,
-          image: "/placeholder.svg",
-          rating: 4.9,
-          preparationTime: "10 min"
-        }
-      ]
-    }
-  ];
-
-  const addToCart = (item) => {
-    if (!isAuthenticated) {
+  const addToCart = (item: any) => {
+    if (!user) {
       toast.error("Por favor, inicia sesión para agregar productos al carrito");
       return;
     }
     
-    setCartItems(prev => {
-      const existingItem = prev.find(cartItem => cartItem.id === item.id);
-      if (existingItem) {
-        return prev.map(cartItem =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
-      }
-      return [...prev, { ...item, quantity: 1 }];
-    });
-    
+    addItem(item);
     toast.success(`${item.name} agregado al carrito`);
   };
 
-  const getTotalItems = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando menú...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Error al cargar el menú</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Intentar de nuevo
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -90,25 +61,25 @@ const Index = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              {!isAuthenticated ? (
+              {!user ? (
                 <div className="space-x-2">
-                  <Button variant="outline" onClick={() => setIsAuthenticated(true)}>
-                    Iniciar Sesión
-                  </Button>
-                  <Button onClick={() => setIsAuthenticated(true)}>
-                    Registrarse
-                  </Button>
+                  <Link to="/auth">
+                    <Button variant="outline">
+                      Iniciar Sesión
+                    </Button>
+                  </Link>
+                  <Link to="/auth">
+                    <Button>
+                      Registrarse
+                    </Button>
+                  </Link>
                 </div>
               ) : (
                 <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-600">¡Hola, Usuario!</span>
-                  <Button variant="outline" className="relative">
-                    <ShoppingCart className="h-4 w-4" />
-                    {getTotalItems() > 0 && (
-                      <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center">
-                        {getTotalItems()}
-                      </Badge>
-                    )}
+                  <span className="text-sm text-gray-600">¡Hola, {user.email}!</span>
+                  <Cart />
+                  <Button variant="outline" onClick={signOut}>
+                    Cerrar Sesión
                   </Button>
                 </div>
               )}
@@ -144,25 +115,36 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h3 className="text-3xl font-bold text-center mb-12">Nuestro Menú</h3>
           
-          {menuCategories.map(category => (
+          {menuCategories?.map(category => (
             <div key={category.id} className="mb-12">
               <h4 className="text-2xl font-semibold mb-6 text-gray-800">
                 {category.name}
               </h4>
+              {category.description && (
+                <p className="text-gray-600 mb-6">{category.description}</p>
+              )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {category.items.map(item => (
+                {category.menu_items?.map(item => (
                   <Card key={item.id} className="hover:shadow-lg transition-shadow duration-200">
                     <CardHeader className="p-0">
                       <div className="aspect-video bg-gray-200 rounded-t-lg flex items-center justify-center">
-                        <span className="text-gray-500">Imagen del plato</span>
+                        {item.image_url ? (
+                          <img 
+                            src={item.image_url} 
+                            alt={item.name}
+                            className="w-full h-full object-cover rounded-t-lg"
+                          />
+                        ) : (
+                          <span className="text-gray-500">Imagen del plato</span>
+                        )}
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-2">
                         <CardTitle className="text-lg">{item.name}</CardTitle>
                         <Badge variant="outline" className="text-xs">
-                          ${item.price.toFixed(2)}
+                          ${Number(item.price).toFixed(2)}
                         </Badge>
                       </div>
                       
@@ -173,19 +155,20 @@ const Index = () => {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center text-sm text-gray-600">
                           <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                          <span>{item.rating}</span>
+                          <span>{item.rating || '4.5'}</span>
                         </div>
                         <div className="flex items-center text-sm text-gray-600">
                           <Clock className="h-4 w-4 mr-1" />
-                          <span>{item.preparationTime}</span>
+                          <span>{item.preparation_time}</span>
                         </div>
                       </div>
                       
                       <Button 
                         onClick={() => addToCart(item)}
                         className="w-full bg-orange-600 hover:bg-orange-700"
+                        disabled={!item.is_available}
                       >
-                        Agregar al Carrito
+                        {item.is_available ? 'Agregar al Carrito' : 'No Disponible'}
                       </Button>
                     </CardContent>
                   </Card>
@@ -220,7 +203,7 @@ const Index = () => {
             
             <div className="text-center">
               <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <ShoppingCart className="h-8 w-8 text-orange-600" />
+                <Cart />
               </div>
               <h4 className="text-xl font-semibold mb-2">Fácil Pedido</h4>
               <p className="text-gray-600">Proceso simple y rápido de ordenar</p>

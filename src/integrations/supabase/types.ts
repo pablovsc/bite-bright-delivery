@@ -47,6 +47,101 @@ export type Database = {
           },
         ]
       }
+      delivery_drivers: {
+        Row: {
+          created_at: string
+          current_orders_count: number | null
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean | null
+          is_available: boolean | null
+          license_plate: string | null
+          max_concurrent_orders: number | null
+          phone: string
+          rating: number | null
+          updated_at: string
+          vehicle_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_orders_count?: number | null
+          email?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          is_available?: boolean | null
+          license_plate?: string | null
+          max_concurrent_orders?: number | null
+          phone: string
+          rating?: number | null
+          updated_at?: string
+          vehicle_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_orders_count?: number | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          is_available?: boolean | null
+          license_plate?: string | null
+          max_concurrent_orders?: number | null
+          phone?: string
+          rating?: number | null
+          updated_at?: string
+          vehicle_type?: string | null
+        }
+        Relationships: []
+      }
+      inventory: {
+        Row: {
+          created_at: string
+          current_stock: number
+          id: string
+          last_restocked_at: string | null
+          max_stock: number | null
+          menu_item_id: string | null
+          min_stock_alert: number | null
+          supplier_info: string | null
+          unit_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_stock?: number
+          id?: string
+          last_restocked_at?: string | null
+          max_stock?: number | null
+          menu_item_id?: string | null
+          min_stock_alert?: number | null
+          supplier_info?: string | null
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_stock?: number
+          id?: string
+          last_restocked_at?: string | null
+          max_stock?: number | null
+          menu_item_id?: string | null
+          min_stock_alert?: number | null
+          supplier_info?: string | null
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_categories: {
         Row: {
           created_at: string
@@ -127,6 +222,57 @@ export type Database = {
           },
         ]
       }
+      order_assignments: {
+        Row: {
+          assigned_at: string | null
+          assignment_type: string | null
+          created_at: string
+          delivered_at: string | null
+          driver_id: string | null
+          external_tracking_id: string | null
+          id: string
+          order_id: string | null
+          picked_up_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assignment_type?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          driver_id?: string | null
+          external_tracking_id?: string | null
+          id?: string
+          order_id?: string | null
+          picked_up_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assignment_type?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          driver_id?: string | null
+          external_tracking_id?: string | null
+          id?: string
+          order_id?: string | null
+          picked_up_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_assignments_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_assignments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -168,6 +314,45 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_promotions: {
+        Row: {
+          created_at: string
+          discount_applied: number
+          id: string
+          order_id: string | null
+          promotion_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          discount_applied: number
+          id?: string
+          order_id?: string | null
+          promotion_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          discount_applied?: number
+          id?: string
+          order_id?: string | null
+          promotion_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_promotions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_promotions_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
             referencedColumns: ["id"]
           },
         ]
@@ -253,12 +438,79 @@ export type Database = {
         }
         Relationships: []
       }
+      promotions: {
+        Row: {
+          applicable_items: string[] | null
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          end_date: string
+          id: string
+          is_active: boolean | null
+          max_discount_amount: number | null
+          min_order_amount: number | null
+          name: string
+          promo_code: string | null
+          start_date: string
+          updated_at: string
+          usage_count: number | null
+          usage_limit: number | null
+        }
+        Insert: {
+          applicable_items?: string[] | null
+          created_at?: string
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          max_discount_amount?: number | null
+          min_order_amount?: number | null
+          name: string
+          promo_code?: string | null
+          start_date: string
+          updated_at?: string
+          usage_count?: number | null
+          usage_limit?: number | null
+        }
+        Update: {
+          applicable_items?: string[] | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          max_discount_amount?: number | null
+          min_order_amount?: number | null
+          name?: string
+          promo_code?: string | null
+          start_date?: string
+          updated_at?: string
+          usage_count?: number | null
+          usage_limit?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_sales_stats: {
+        Args: { start_date?: string; end_date?: string }
+        Returns: {
+          total_orders: number
+          total_revenue: number
+          avg_order_value: number
+          top_selling_items: Json
+          peak_hours: Json
+          daily_sales: Json
+        }[]
+      }
     }
     Enums: {
       order_status:

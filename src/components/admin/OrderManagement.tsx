@@ -14,13 +14,24 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Clock, User, MapPin, Phone } from 'lucide-react';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Tables, Database } from '@/integrations/supabase/types';
 
 type Order = Tables<'orders'> & {
-  profiles: Tables<'profiles'>;
-  delivery_addresses: Tables<'delivery_addresses'>;
+  profiles: {
+    full_name: string | null;
+    phone: string | null;
+    email: string | null;
+  } | null;
+  delivery_addresses: {
+    street_address: string;
+    city: string;
+    postal_code: string | null;
+  } | null;
   order_items: (Tables<'order_items'> & {
-    menu_items: Tables<'menu_items'>;
+    menu_items: {
+      name: string;
+      price: number;
+    } | null;
   })[];
   order_assignments: Tables<'order_assignments'>[];
 };
@@ -92,11 +103,11 @@ const OrderManagement = () => {
   });
 
   const updateOrderStatus = useMutation({
-    mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
+    mutationFn: async ({ orderId, status }: { orderId: string; status: Database['public']['Enums']['order_status'] }) => {
       const { error } = await supabase
         .from('orders')
         .update({ 
-          status: status as any,
+          status: status,
           updated_at: new Date().toISOString()
         })
         .eq('id', orderId);
@@ -231,7 +242,10 @@ const OrderManagement = () => {
               <Select
                 value={order.status || 'pending'}
                 onValueChange={(status) => 
-                  updateOrderStatus.mutate({ orderId: order.id, status })
+                  updateOrderStatus.mutate({ 
+                    orderId: order.id, 
+                    status: status as Database['public']['Enums']['order_status']
+                  })
                 }
               >
                 <SelectTrigger className="w-48">

@@ -45,9 +45,9 @@ const SalesStatistics = () => {
     return <div className="text-center py-8">Cargando estadísticas...</div>;
   }
 
-  const dailySalesData = stats?.daily_sales ? JSON.parse(stats.daily_sales) : [];
-  const topItemsData = stats?.top_selling_items ? JSON.parse(stats.top_selling_items) : [];
-  const peakHoursData = stats?.peak_hours ? JSON.parse(stats.peak_hours) : [];
+  const dailySalesData = stats?.daily_sales ? JSON.parse(stats.daily_sales as string) : [];
+  const topItemsData = stats?.top_selling_items ? JSON.parse(stats.top_selling_items as string) : [];
+  const peakHoursData = stats?.peak_hours ? JSON.parse(stats.peak_hours as string) : [];
 
   return (
     <div className="space-y-6">
@@ -102,7 +102,7 @@ const SalesStatistics = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Ingresos Totales</p>
-                <p className="text-2xl font-bold">€{stats?.total_revenue?.toFixed(2) || '0.00'}</p>
+                <p className="text-2xl font-bold">€{Number(stats?.total_revenue || 0).toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -116,7 +116,7 @@ const SalesStatistics = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Valor Promedio</p>
-                <p className="text-2xl font-bold">€{stats?.avg_order_value?.toFixed(2) || '0.00'}</p>
+                <p className="text-2xl font-bold">€{Number(stats?.avg_order_value || 0).toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -193,7 +193,7 @@ const SalesStatistics = () => {
                     <p className="text-sm text-gray-600">Cantidad vendida: {item.total_quantity}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">€{item.total_revenue?.toFixed(2)}</p>
+                    <p className="font-semibold">€{Number(item.total_revenue || 0).toFixed(2)}</p>
                   </div>
                 </div>
               ))}
@@ -251,7 +251,7 @@ const SalesStatistics = () => {
                   <tr key={index} className="border-b">
                     <td className="p-2">{new Date(day.date).toLocaleDateString()}</td>
                     <td className="text-right p-2">{day.orders}</td>
-                    <td className="text-right p-2">€{day.revenue?.toFixed(2)}</td>
+                    <td className="text-right p-2">€{Number(day.revenue || 0).toFixed(2)}</td>
                     <td className="text-right p-2">
                       €{day.orders > 0 ? (day.revenue / day.orders).toFixed(2) : '0.00'}
                     </td>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +13,13 @@ import { useMenu } from '@/hooks/useMenu';
 import type { Tables } from '@/integrations/supabase/types';
 
 type InventoryItem = Tables<'inventory'> & {
-  menu_items: Tables<'menu_items'>;
+  menu_items: {
+    name: string;
+    category_id: string | null;
+    menu_categories: {
+      name: string;
+    } | null;
+  } | null;
 };
 
 const InventoryManagement = () => {

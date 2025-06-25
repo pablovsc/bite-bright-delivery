@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SocialAuthButtons from '@/components/SocialAuthButtons';
 
@@ -39,6 +39,19 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handleQuickLogin = async (email: string, password: string) => {
+    setLoading(true);
+    const { error } = await signIn(email, password);
+    
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('¡Bienvenido!');
+    }
+    
+    setLoading(false);
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -59,6 +72,12 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const testUsers = [
+    { email: 'restaurant@test.com', password: 'restaurant', role: 'Restaurante', color: 'bg-blue-500' },
+    { email: 'cliente@test.com', password: 'cliente', role: 'Cliente', color: 'bg-orange-500' },
+    { email: 'delivery@test.com', password: 'delivery', role: 'Repartidor', color: 'bg-green-500' },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -70,6 +89,33 @@ const Auth = () => {
           <h2 className="text-3xl font-bold text-gray-900">BiteBright</h2>
           <p className="mt-2 text-gray-600">Tu comida favorita a domicilio</p>
         </div>
+
+        {/* Usuarios de prueba */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Usuarios de Prueba
+            </CardTitle>
+            <CardDescription>
+              Haz clic para iniciar sesión rápidamente
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {testUsers.map((testUser) => (
+              <Button
+                key={testUser.email}
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => handleQuickLogin(testUser.email, testUser.password)}
+                disabled={loading}
+              >
+                <div className={`w-3 h-3 rounded-full ${testUser.color} mr-3`}></div>
+                {testUser.role} - {testUser.email}
+              </Button>
+            ))}
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">

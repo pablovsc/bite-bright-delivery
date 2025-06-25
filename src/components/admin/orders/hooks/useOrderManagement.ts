@@ -7,7 +7,7 @@ import { type Order, type OrderStatus } from '../types';
 
 export const useOrderManagement = () => {
   const queryClient = useQueryClient();
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string | OrderStatus>('all');
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-orders', selectedStatus],
@@ -44,7 +44,7 @@ export const useOrderManagement = () => {
         .order('created_at', { ascending: false });
 
       if (selectedStatus !== 'all') {
-        query = query.eq('status', selectedStatus);
+        query = query.eq('status', selectedStatus as OrderStatus);
       }
 
       const { data, error } = await query;
@@ -58,7 +58,7 @@ export const useOrderManagement = () => {
       const { error } = await supabase
         .from('orders')
         .update({ 
-          status: status as OrderStatus,
+          status: status,
           updated_at: new Date().toISOString()
         })
         .eq('id', orderId);

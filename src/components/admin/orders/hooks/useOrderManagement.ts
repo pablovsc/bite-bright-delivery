@@ -58,7 +58,7 @@ export const useOrderManagement = () => {
       const { error } = await supabase
         .from('orders')
         .update({ 
-          status: status,
+          status: status as OrderStatus,
           updated_at: new Date().toISOString()
         })
         .eq('id', orderId);

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, X } from 'lucide-react';
 import { useMenu } from '@/hooks/useMenu';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -50,6 +49,7 @@ const MenuManagement = () => {
       category_id: string;
       preparation_time: string;
       is_available: boolean;
+      image_url?: string;
     }) => {
       const { error } = await supabase
         .from('menu_items')
@@ -74,6 +74,7 @@ const MenuManagement = () => {
       price: number;
       preparation_time: string;
       is_available: boolean;
+      image_url?: string;
     }) => {
       const { error } = await supabase
         .from('menu_items')
@@ -83,6 +84,7 @@ const MenuManagement = () => {
           price: data.price,
           preparation_time: data.preparation_time,
           is_available: data.is_available,
+          image_url: data.image_url,
           updated_at: new Date().toISOString()
         })
         .eq('id', data.id);
@@ -167,7 +169,7 @@ const MenuManagement = () => {
                 Nuevo Producto
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Agregar Nuevo Producto</DialogTitle>
               </DialogHeader>
@@ -196,20 +198,29 @@ const MenuManagement = () => {
               <div className="grid gap-4">
                 {category.menu_items?.map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <h4 className="font-medium">{item.name}</h4>
-                        {!item.is_available && (
-                          <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                            No disponible
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                        <span>€{item.price}</span>
-                        <span>{item.preparation_time}</span>
-                        <span>⭐ {item.rating}/5</span>
+                    <div className="flex items-center gap-4 flex-1">
+                      {item.image_url && (
+                        <img 
+                          src={item.image_url} 
+                          alt={item.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <h4 className="font-medium">{item.name}</h4>
+                          {!item.is_available && (
+                            <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                              No disponible
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                          <span>€{item.price}</span>
+                          <span>{item.preparation_time}</span>
+                          <span>⭐ {item.rating}/5</span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -238,7 +249,7 @@ const MenuManagement = () => {
 
       {editingItem && (
         <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Editar Producto</DialogTitle>
             </DialogHeader>
@@ -264,29 +275,133 @@ interface ItemFormProps {
 
 const ItemForm: React.FC<ItemFormProps> = ({ categories, item, onSubmit, isLoading }) => {
   const [isAvailable, setIsAvailable] = useState(item?.is_available ?? true);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>(item?.image_url || '');
+  const [uploading, setUploading] = useState(false);
 
-  return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `menu-items/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('menu-items')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('menu-items')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    try {
+      setUploading(true);
       const formData = new FormData(e.currentTarget);
-      onSubmit({
+      
+      let imageUrl = item?.image_url || '';
+      
+      if (selectedImage) {
+        imageUrl = await uploadImage(selectedImage);
+      }
+
+      const data = {
         name: formData.get('name') as string,
         description: formData.get('description') as string,
         price: parseFloat(formData.get('price') as string),
         category_id: formData.get('category_id') as string,
         preparation_time: formData.get('preparation_time') as string,
-        is_available: isAvailable
-      });
-    }}>
+        is_available: isAvailable,
+        image_url: imageUrl
+      };
+
+      onSubmit(data);
+    } catch (error) {
+      toast.error('Error al subir la imagen: ' + (error as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
       <div className="space-y-4">
         <div>
           <Label htmlFor="name">Nombre del Producto</Label>
           <Input id="name" name="name" defaultValue={item?.name} required />
         </div>
+        
         <div>
           <Label htmlFor="description">Descripción</Label>
           <Textarea id="description" name="description" defaultValue={item?.description || ''} />
         </div>
+
+        <div>
+          <Label htmlFor="image">Imagen del Producto</Label>
+          <div className="space-y-4">
+            {imagePreview && (
+              <div className="relative inline-block">
+                <img 
+                  src={imagePreview} 
+                  alt="Vista previa" 
+                  className="w-32 h-32 object-cover rounded-lg border"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                  onClick={removeImage}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            
+            <div className="flex items-center gap-2">
+              <Input
+                id="image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => document.getElementById('image')?.click()}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {imagePreview ? 'Cambiar Imagen' : 'Subir Imagen'}
+              </Button>
+            </div>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="price">Precio (€)</Label>
@@ -309,6 +424,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ categories, item, onSubmit, isLoadi
             />
           </div>
         </div>
+        
         {!item && (
           <div>
             <Label htmlFor="category_id">Categoría</Label>
@@ -322,6 +438,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ categories, item, onSubmit, isLoadi
             </select>
           </div>
         )}
+        
         <div className="flex items-center space-x-2">
           <Switch
             id="is_available"
@@ -330,8 +447,9 @@ const ItemForm: React.FC<ItemFormProps> = ({ categories, item, onSubmit, isLoadi
           />
           <Label htmlFor="is_available">Disponible</Label>
         </div>
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {item ? 'Actualizar' : 'Agregar'} Producto
+        
+        <Button type="submit" className="w-full" disabled={isLoading || uploading}>
+          {uploading ? 'Subiendo imagen...' : (item ? 'Actualizar' : 'Agregar')} Producto
         </Button>
       </div>
     </form>

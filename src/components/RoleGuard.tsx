@@ -16,23 +16,20 @@ const RoleGuard = ({ allowedRoles, children, fallback }: RoleGuardProps) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600"></div>
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
       </div>
     );
   }
 
   if (!userRole || !allowedRoles.includes(userRole)) {
-    return fallback ? (
-      <>{fallback}</>
-    ) : (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Acceso Denegado</h2>
-          <p className="text-gray-600">No tienes permisos para acceder a esta página.</p>
-        </div>
-      </div>
-    );
+    if (fallback) {
+      return <>{fallback}</>;
+    }
+    
+    // If no role matches and no fallback, don't render anything
+    // This prevents showing unauthorized content
+    return null;
   }
 
   return <>{children}</>;

@@ -66,14 +66,14 @@ const Index = () => {
           {user ? (
             <div className="space-y-8">
               {/* User Profile and Role-specific content */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* User Profile Card */}
-                <div className="md:col-span-1">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* User Profile Card - Fixed width on larger screens */}
+                <div className="lg:col-span-1">
                   <UserProfile />
                 </div>
 
-                {/* Role-specific content */}
-                <div className="md:col-span-2">
+                {/* Role-specific content - Takes remaining space */}
+                <div className="lg:col-span-3">
                   <RoleGuard allowedRoles={['restaurant']}>
                     <div className="bg-white rounded-lg shadow p-6">
                       <h2 className="text-xl font-semibold mb-4">Panel de Restaurante</h2>

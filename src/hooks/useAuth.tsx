@@ -49,49 +49,70 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    // Get initial session first
+    let mounted = true;
+
+    // Get initial session
     const getInitialSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           const role = await fetchUserRole(session.user.id);
-          setUserRole(role);
+          if (mounted) {
+            setUserRole(role);
+          }
         } else {
           setUserRole(null);
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
-    getInitialSession();
-
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (!mounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user && event === 'SIGNED_IN') {
-          // Only fetch role for new logins
-          const role = await fetchUserRole(session.user.id);
-          setUserRole(role);
-        } else if (!session) {
+        if (session?.user) {
+          // Use setTimeout to defer the role fetch and avoid blocking the auth callback
+          setTimeout(async () => {
+            if (!mounted) return;
+            const role = await fetchUserRole(session.user.id);
+            if (mounted) {
+              setUserRole(role);
+            }
+          }, 0);
+        } else {
           setUserRole(null);
         }
         
-        setLoading(false);
+        if (!session) {
+          setLoading(false);
+        }
       }
     );
 
-    return () => subscription.unsubscribe();
+    getInitialSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {

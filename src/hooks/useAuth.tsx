@@ -99,9 +99,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }, 0);
         } else {
           setUserRole(null);
-        }
-        
-        if (!session) {
           setLoading(false);
         }
       }
@@ -170,8 +167,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    setUserRole(null);
-    await supabase.auth.signOut();
+    console.log('Signing out...');
+    try {
+      // Clear local state first
+      setUser(null);
+      setSession(null);
+      setUserRole(null);
+      
+      // Then sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+      } else {
+        console.log('Successfully signed out');
+      }
+    } catch (error) {
+      console.error('Unexpected error during sign out:', error);
+    }
   };
 
   const hasRole = (role: AppRole): boolean => {

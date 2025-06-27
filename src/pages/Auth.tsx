@@ -34,6 +34,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success('¡Bienvenido de vuelta!');
+      // Navigation will be handled by useAuth hook
     }
     
     setLoading(false);
@@ -47,6 +48,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success('¡Bienvenido!');
+      // Navigation will be handled by useAuth hook
     }
     
     setLoading(false);

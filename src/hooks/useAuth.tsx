@@ -1,8 +1,8 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { useNavigate } from 'react-router-dom';
 
 type AppRole = Database['public']['Enums']['app_role'];
 
@@ -60,6 +60,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setTimeout(async () => {
             const role = await fetchUserRole(session.user.id);
             setUserRole(role);
+            
+            // Redirect clients to home page after login
+            if (role === 'cliente' && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+              window.location.href = '/';
+            }
           }, 0);
         } else {
           setUserRole(null);

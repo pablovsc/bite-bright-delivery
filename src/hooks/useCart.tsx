@@ -1,7 +1,6 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
-import { useAuth } from '@/hooks/useAuth';
 
 type MenuItem = Tables<'menu_items'>;
 
@@ -23,45 +22,19 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
-  const { user } = useAuth();
 
-  // Generate unique cart key for each user
-  const getCartKey = () => {
-    if (user) {
-      return `bitebright-cart-${user.id}`;
-    }
-    return 'bitebright-cart-guest';
-  };
-
-  // Load cart from localStorage when user changes
+  // Load cart from localStorage on mount
   useEffect(() => {
-    const cartKey = getCartKey();
-    const savedCart = localStorage.getItem(cartKey);
+    const savedCart = localStorage.getItem('bitebright-cart');
     if (savedCart) {
-      try {
-        setItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Error loading cart:', error);
-        setItems([]);
-      }
-    } else {
-      setItems([]);
+      setItems(JSON.parse(savedCart));
     }
-  }, [user]);
+  }, []);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    const cartKey = getCartKey();
-    localStorage.setItem(cartKey, JSON.stringify(items));
-  }, [items, user]);
-
-  // Clear guest cart when user logs in
-  useEffect(() => {
-    if (user) {
-      // Remove guest cart when user logs in
-      localStorage.removeItem('bitebright-cart-guest');
-    }
-  }, [user]);
+    localStorage.setItem('bitebright-cart', JSON.stringify(items));
+  }, [items]);
 
   const addItem = (item: MenuItem) => {
     setItems(prev => {

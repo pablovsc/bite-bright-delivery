@@ -2,14 +2,13 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, User, Settings } from 'lucide-react';
-import UserProfile from '@/components/UserProfile';
+import { ShoppingCart, User, Settings, LogOut } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 import PublicMenu from '@/components/PublicMenu';
 import { Cart } from '@/components/Cart';
 
 const Index = () => {
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -38,6 +37,16 @@ const Index = () => {
                   <span className="text-sm text-gray-600">
                     Bienvenido, {user.email}
                   </span>
+                  
+                  {/* Profile Link */}
+                  <Link to="/profile">
+                    <Button variant="outline" size="sm">
+                      <User className="h-4 w-4 mr-2" />
+                      Perfil
+                    </Button>
+                  </Link>
+                  
+                  {/* Admin Link for restaurant role */}
                   {userRole === 'restaurant' && (
                     <Link to="/admin">
                       <Button variant="outline" size="sm">
@@ -46,6 +55,12 @@ const Index = () => {
                       </Button>
                     </Link>
                   )}
+                  
+                  {/* Logout Button */}
+                  <Button variant="outline" size="sm" onClick={signOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Cerrar Sesión
+                  </Button>
                 </>
               ) : (
                 <Link to="/auth">
@@ -65,56 +80,48 @@ const Index = () => {
         <div className="px-4 py-6 sm:px-0">
           {user ? (
             <div className="space-y-8">
-              {/* User Profile and Role-specific content */}
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* User Profile Card - Fixed width on larger screens */}
-                <div className="lg:col-span-1">
-                  <UserProfile />
-                </div>
-
-                {/* Role-specific content - Takes remaining space */}
-                <div className="lg:col-span-3">
-                  <RoleGuard allowedRoles={['restaurant']}>
-                    <div className="bg-white rounded-lg shadow p-6">
-                      <h2 className="text-xl font-semibold mb-4">Panel de Restaurante</h2>
-                      <p className="text-gray-600 mb-4">
-                        Desde aquí puedes gestionar tu menú, ver pedidos y administrar tu restaurante.
-                      </p>
-                      <Link to="/admin">
-                        <Button className="bg-orange-600 hover:bg-orange-700">
-                          Ir al Panel de Administración
-                        </Button>
-                      </Link>
-                    </div>
-                  </RoleGuard>
-
-                  <RoleGuard allowedRoles={['cliente']}>
-                    <div className="bg-white rounded-lg shadow p-6">
-                      <h2 className="text-xl font-semibold mb-4">¡Bienvenido Cliente!</h2>
-                      <p className="text-gray-600 mb-4">
-                        Explora nuestro menú y haz tu pedido favorito.
-                      </p>
-                      <div className="flex items-center space-x-2">
-                        <ShoppingCart className="h-4 w-4 text-orange-600" />
-                        <span className="text-sm text-gray-600">
-                          Revisa nuestro menú completo más abajo
-                        </span>
-                      </div>
-                    </div>
-                  </RoleGuard>
-
-                  <RoleGuard allowedRoles={['delivery']}>
-                    <div className="bg-white rounded-lg shadow p-6">
-                      <h2 className="text-xl font-semibold mb-4">Panel de Repartidor</h2>
-                      <p className="text-gray-600 mb-4">
-                        Aquí puedes ver los pedidos asignados y gestionar tus entregas.
-                      </p>
+              {/* Role-specific content */}
+              <div className="grid grid-cols-1 gap-6">
+                <RoleGuard allowedRoles={['restaurant']}>
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-semibold mb-4">Panel de Restaurante</h2>
+                    <p className="text-gray-600 mb-4">
+                      Desde aquí puedes gestionar tu menú, ver pedidos y administrar tu restaurante.
+                    </p>
+                    <Link to="/admin">
                       <Button className="bg-orange-600 hover:bg-orange-700">
-                        Ver Pedidos Asignados
+                        Ir al Panel de Administración
                       </Button>
+                    </Link>
+                  </div>
+                </RoleGuard>
+
+                <RoleGuard allowedRoles={['cliente']}>
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-semibold mb-4">¡Bienvenido Cliente!</h2>
+                    <p className="text-gray-600 mb-4">
+                      Explora nuestro menú y haz tu pedido favorito.
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <ShoppingCart className="h-4 w-4 text-orange-600" />
+                      <span className="text-sm text-gray-600">
+                        Revisa nuestro menú completo más abajo
+                      </span>
                     </div>
-                  </RoleGuard>
-                </div>
+                  </div>
+                </RoleGuard>
+
+                <RoleGuard allowedRoles={['delivery']}>
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-semibold mb-4">Panel de Repartidor</h2>
+                    <p className="text-gray-600 mb-4">
+                      Aquí puedes ver los pedidos asignados y gestionar tus entregas.
+                    </p>
+                    <Button className="bg-orange-600 hover:bg-orange-700">
+                      Ver Pedidos Asignados
+                    </Button>
+                  </div>
+                </RoleGuard>
               </div>
 
               {/* Menu Section for authenticated users */}

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -11,7 +11,8 @@ import {
   Users, 
   BarChart3, 
   Gift,
-  LogOut
+  LogOut,
+  Home
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MenuManagement from '@/components/admin/MenuManagement';
@@ -41,10 +42,18 @@ const Admin = () => {
               <h1 className="text-2xl font-bold text-gray-900">Panel de Administración</h1>
               <p className="text-gray-600">Gestiona tu restaurante</p>
             </div>
-            <Button onClick={handleSignOut} variant="outline">
-              <LogOut className="w-4 h-4 mr-2" />
-              Cerrar Sesión
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Link to="/">
+                <Button variant="outline">
+                  <Home className="w-4 h-4 mr-2" />
+                  Ir al Inicio
+                </Button>
+              </Link>
+              <Button onClick={handleSignOut} variant="outline">
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
         </div>
       </div>

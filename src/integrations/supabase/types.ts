@@ -142,6 +142,65 @@ export type Database = {
           },
         ]
       }
+      manual_payment_verifications: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          id: string
+          order_id: string
+          origin_bank: string
+          payment_method_type: string
+          payment_proof_url: string
+          phone_number_used: string | null
+          reference_number: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          id?: string
+          order_id: string
+          origin_bank: string
+          payment_method_type: string
+          payment_proof_url: string
+          phone_number_used?: string | null
+          reference_number: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          order_id?: string
+          origin_bank?: string
+          payment_method_type?: string
+          payment_proof_url?: string
+          phone_number_used?: string | null
+          reference_number?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_payment_verifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_categories: {
         Row: {
           created_at: string
@@ -410,6 +469,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_methods: {
+        Row: {
+          account_holder_name: string | null
+          account_number: string
+          created_at: string
+          destination_bank: string
+          id: string
+          is_active: boolean | null
+          other_type_description: string | null
+          owner_id: string
+          payment_type: string
+          phone_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_holder_name?: string | null
+          account_number: string
+          created_at?: string
+          destination_bank: string
+          id?: string
+          is_active?: boolean | null
+          other_type_description?: string | null
+          owner_id: string
+          payment_type: string
+          phone_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_holder_name?: string | null
+          account_number?: string
+          created_at?: string
+          destination_bank?: string
+          id?: string
+          is_active?: boolean | null
+          other_type_description?: string | null
+          owner_id?: string
+          payment_type?: string
+          phone_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

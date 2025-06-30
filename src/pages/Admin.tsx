@@ -12,7 +12,9 @@ import {
   BarChart3, 
   Gift,
   LogOut,
-  Home
+  Home,
+  CreditCard,
+  CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MenuManagement from '@/components/admin/MenuManagement';
@@ -21,6 +23,8 @@ import OrderManagement from '@/components/admin/OrderManagement';
 import DriverManagement from '@/components/admin/DriverManagement';
 import SalesStatistics from '@/components/admin/SalesStatistics';
 import PromotionManagement from '@/components/admin/PromotionManagement';
+import PaymentMethodsManagement from '@/components/admin/PaymentMethodsManagement';
+import PaymentVerificationManagement from '@/components/admin/PaymentVerificationManagement';
 
 const Admin = () => {
   const { user, signOut } = useAuth();
@@ -60,7 +64,7 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="orders" className="flex items-center gap-2">
               <ShoppingCart className="w-4 h-4" />
               Pedidos
@@ -84,6 +88,14 @@ const Admin = () => {
             <TabsTrigger value="promotions" className="flex items-center gap-2">
               <Gift className="w-4 h-4" />
               Promociones
+            </TabsTrigger>
+            <TabsTrigger value="payment-methods" className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              Métodos Pago
+            </TabsTrigger>
+            <TabsTrigger value="payment-verifications" className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Verificaciones
             </TabsTrigger>
           </TabsList>
 
@@ -167,6 +179,34 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <PromotionManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="payment-methods" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Métodos de Pago</CardTitle>
+                <CardDescription>
+                  Configura los métodos de pago manual disponibles
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PaymentMethodsManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="payment-verifications" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Verificaciones de Pago</CardTitle>
+                <CardDescription>
+                  Revisa y aprueba los comprobantes de pago enviados por los clientes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PaymentVerificationManagement />
               </CardContent>
             </Card>
           </TabsContent>

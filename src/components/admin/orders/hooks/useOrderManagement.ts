@@ -9,9 +9,11 @@ export const useOrderManagement = () => {
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<string | OrderStatus>('all');
 
-  const { data: orders, isLoading } = useQuery({
+  const { data: orders, isLoading, error } = useQuery({
     queryKey: ['admin-orders', selectedStatus],
     queryFn: async () => {
+      console.log('Fetching orders with selectedStatus:', selectedStatus);
+      
       let query = supabase
         .from('orders')
         .select(`
@@ -48,10 +50,24 @@ export const useOrderManagement = () => {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Error fetching orders:', error);
+        throw error;
+      }
+      
+      console.log('Fetched orders:', data);
       return data as Order[];
     }
   });
+
+  // Log any query errors
+  useEffect(() => {
+    if (error) {
+      console.error('Query error:', error);
+      toast.error('Error al cargar los pedidos: ' + error.message);
+    }
+  }, [error]);
 
   const updateOrderStatus = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: OrderStatus }) => {
@@ -86,6 +102,7 @@ export const useOrderManagement = () => {
           table: 'orders'
         },
         () => {
+          console.log('Real-time order change detected');
           queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
         }
       )

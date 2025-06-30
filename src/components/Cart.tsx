@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -8,10 +7,12 @@ import { ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export const Cart = () => {
   const { items, updateQuantity, removeItem, clearCart, totalItems, totalPrice } = useCart();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const handlePlaceOrder = async () => {
@@ -62,6 +63,9 @@ export const Cart = () => {
 
       toast.success('¡Pedido realizado exitosamente!');
       clearCart();
+      
+      // Redirect to payment page
+      navigate(`/payment/${order.id}`);
     } catch (error) {
       console.error('Error placing order:', error);
       toast.error('Error al realizar el pedido. Inténtalo de nuevo.');
@@ -96,7 +100,7 @@ export const Cart = () => {
                 <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-medium">{item.name}</h4>
-                    <p className="text-sm text-gray-600">${item.price.toFixed(2)} c/u</p>
+                    <p className="text-sm text-gray-600">€{item.price.toFixed(2)} c/u</p>
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -133,15 +137,15 @@ export const Cart = () => {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span>${totalPrice.toFixed(2)}</span>
+                  <span>€{totalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Envío:</span>
-                  <span>$3.50</span>
+                  <span>€3.50</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total:</span>
-                  <span>${(totalPrice + 3.50).toFixed(2)}</span>
+                  <span>€{(totalPrice + 3.50).toFixed(2)}</span>
                 </div>
               </div>
               

@@ -1,14 +1,15 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Truck, 
   DollarSign, 
   Package, 
   Star, 
   Clock,
-  TrendingUp
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,10 +24,12 @@ interface DriverDashboardProps {
 }
 
 const DriverDashboard = ({ driverId, driverInfo }: DriverDashboardProps) => {
-  const { data: todayStats } = useQuery({
+  const { data: todayStats, error: statsError } = useQuery({
     queryKey: ['driver-today-stats', driverId],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
+      
+      console.log('Fetching today stats for driver:', driverId, 'date:', today);
       
       const { data, error } = await supabase
         .from('driver_stats')
@@ -35,14 +38,22 @@ const DriverDashboard = ({ driverId, driverInfo }: DriverDashboardProps) => {
         .eq('date', today)
         .single();
       
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching driver stats:', error);
+        throw error;
+      }
+      
+      console.log('Driver stats result:', data);
       return data;
-    }
+    },
+    retry: 1
   });
 
-  const { data: activeOrders } = useQuery({
+  const { data: activeOrders, error: ordersError } = useQuery({
     queryKey: ['driver-active-orders', driverId],
     queryFn: async () => {
+      console.log('Fetching active orders for driver:', driverId);
+      
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -53,9 +64,15 @@ const DriverDashboard = ({ driverId, driverInfo }: DriverDashboardProps) => {
         .eq('order_assignments.driver_id', driverId)
         .in('status', ['confirmed', 'preparing', 'ready']);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching active orders:', error);
+        throw error;
+      }
+      
+      console.log('Active orders result:', data);
       return data;
-    }
+    },
+    retry: 1
   });
 
   return (
@@ -63,7 +80,7 @@ const DriverDashboard = ({ driverId, driverInfo }: DriverDashboardProps) => {
       {/* Driver Status Header */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <CardTitle className="text-2xl flex items-center">
                 <Truck className="w-8 h-8 mr-2" />
@@ -78,7 +95,7 @@ const DriverDashboard = ({ driverId, driverInfo }: DriverDashboardProps) => {
                 })}
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-left md:text-right">
               <Badge 
                 variant={driverInfo.is_available ? "default" : "secondary"}
                 className={driverInfo.is_available ? "bg-green-600" : ""}
@@ -95,6 +112,18 @@ const DriverDashboard = ({ driverId, driverInfo }: DriverDashboardProps) => {
           </div>
         </CardHeader>
       </Card>
+
+      {/* Error Alerts */}
+      {(statsError || ordersError) && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Algunos datos pueden no estar disponibles en este momento. 
+            {statsError && ` Error de estadísticas: ${statsError.message}`}
+            {ordersError && ` Error de pedidos: ${ordersError.message}`}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Today's Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -118,7 +147,7 @@ const DriverDashboard = ({ driverId, driverInfo }: DriverDashboardProps) => {
               <div>
                 <p className="text-sm text-gray-600">Ganancias Hoy</p>
                 <p className="text-2xl font-bold">
-                  ${todayStats?.total_earnings?.toFixed(2) || '0.00'}
+                  €{todayStats?.total_earnings?.toFixed(2) || '0.00'}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-green-600" />

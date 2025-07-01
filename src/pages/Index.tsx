@@ -1,14 +1,16 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, User, Settings, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Settings, LogOut, Menu } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 import PublicMenu from '@/components/PublicMenu';
 import { Cart } from '@/components/Cart';
+import { useState } from 'react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Index = () => {
   const { user, userRole, loading, signOut } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (loading) {
     return (
@@ -17,6 +19,62 @@ const Index = () => {
       </div>
     );
   }
+
+  const MobileMenu = () => (
+    <div className="flex flex-col space-y-4 p-4">
+      {user ? (
+        <>
+          <div className="text-sm text-gray-600 border-b pb-2">
+            Bienvenido, {user.email}
+          </div>
+          
+          <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
+            <Button variant="outline" className="w-full justify-start">
+              <User className="h-4 w-4 mr-2" />
+              Perfil
+            </Button>
+          </Link>
+          
+          {userRole === 'restaurant' && (
+            <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
+              <Button variant="outline" className="w-full justify-start">
+                <Settings className="h-4 w-4 mr-2" />
+                Admin
+              </Button>
+            </Link>
+          )}
+
+          {userRole === 'delivery' && (
+            <Link to="/driver" onClick={() => setMobileMenuOpen(false)}>
+              <Button variant="outline" className="w-full justify-start">
+                <Settings className="h-4 w-4 mr-2" />
+                Panel Repartidor
+              </Button>
+            </Link>
+          )}
+          
+          <Button 
+            variant="outline" 
+            className="w-full justify-start text-red-600 hover:text-red-700"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              signOut();
+            }}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Cerrar Sesión
+          </Button>
+        </>
+      ) : (
+        <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+          <Button variant="outline" className="w-full justify-start">
+            <User className="h-4 w-4 mr-2" />
+            Iniciar Sesión
+          </Button>
+        </Link>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -28,8 +86,8 @@ const Index = () => {
               <h1 className="text-2xl font-bold text-orange-600">BiteBright</h1>
             </div>
             
-            <div className="flex items-center space-x-4">
-              {/* Cart - Show for all users */}
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
               <Cart />
               
               {user ? (
@@ -38,7 +96,6 @@ const Index = () => {
                     Bienvenido, {user.email}
                   </span>
                   
-                  {/* Profile Link */}
                   <Link to="/profile">
                     <Button variant="outline" size="sm">
                       <User className="h-4 w-4 mr-2" />
@@ -46,7 +103,6 @@ const Index = () => {
                     </Button>
                   </Link>
                   
-                  {/* Admin Link for restaurant role */}
                   {userRole === 'restaurant' && (
                     <Link to="/admin">
                       <Button variant="outline" size="sm">
@@ -55,8 +111,16 @@ const Index = () => {
                       </Button>
                     </Link>
                   )}
+
+                  {userRole === 'delivery' && (
+                    <Link to="/driver">
+                      <Button variant="outline" size="sm">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Panel Repartidor
+                      </Button>
+                    </Link>
+                  )}
                   
-                  {/* Logout Button */}
                   <Button variant="outline" size="sm" onClick={signOut}>
                     <LogOut className="h-4 w-4 mr-2" />
                     Cerrar Sesión
@@ -70,6 +134,22 @@ const Index = () => {
                   </Button>
                 </Link>
               )}
+            </div>
+
+            {/* Mobile Navigation */}
+            <div className="md:hidden flex items-center space-x-2">
+              <Cart />
+              
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Menu className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-64">
+                  <MobileMenu />
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
@@ -117,9 +197,11 @@ const Index = () => {
                     <p className="text-gray-600 mb-4">
                       Aquí puedes ver los pedidos asignados y gestionar tus entregas.
                     </p>
-                    <Button className="bg-orange-600 hover:bg-orange-700">
-                      Ver Pedidos Asignados
-                    </Button>
+                    <Link to="/driver">
+                      <Button className="bg-orange-600 hover:bg-orange-700">
+                        Ir al Panel de Repartidor
+                      </Button>
+                    </Link>
                   </div>
                 </RoleGuard>
               </div>

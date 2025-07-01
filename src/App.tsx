@@ -9,6 +9,7 @@ import { CartProvider } from "@/hooks/useCart";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import Driver from "./pages/Driver";
 import Profile from "./pages/Profile";
 import PaymentPage from "./pages/PaymentPage";
 import NotFound from "./pages/NotFound";
@@ -27,6 +28,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/driver" element={<Driver />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/payment/:orderId" element={<PaymentPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

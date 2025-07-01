@@ -47,6 +47,57 @@ export type Database = {
           },
         ]
       }
+      delivery_confirmations: {
+        Row: {
+          confirmation_data: string | null
+          confirmation_type: string
+          confirmed_at: string
+          created_at: string
+          delivery_issues: string | null
+          delivery_notes: string | null
+          driver_id: string
+          id: string
+          order_id: string
+        }
+        Insert: {
+          confirmation_data?: string | null
+          confirmation_type: string
+          confirmed_at?: string
+          created_at?: string
+          delivery_issues?: string | null
+          delivery_notes?: string | null
+          driver_id: string
+          id?: string
+          order_id: string
+        }
+        Update: {
+          confirmation_data?: string | null
+          confirmation_type?: string
+          confirmed_at?: string
+          created_at?: string
+          delivery_issues?: string | null
+          delivery_notes?: string | null
+          driver_id?: string
+          id?: string
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_confirmations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_confirmations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_drivers: {
         Row: {
           created_at: string
@@ -94,6 +145,161 @@ export type Database = {
           vehicle_type?: string | null
         }
         Relationships: []
+      }
+      driver_locations: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          driver_id: string
+          heading: number | null
+          id: string
+          latitude: number
+          longitude: number
+          order_id: string | null
+          speed: number | null
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          driver_id: string
+          heading?: number | null
+          id?: string
+          latitude: number
+          longitude: number
+          order_id?: string | null
+          speed?: number | null
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          driver_id?: string
+          heading?: number | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          order_id?: string | null
+          speed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_locations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_locations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_notifications: {
+        Row: {
+          created_at: string
+          driver_id: string
+          expires_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: string
+          order_id: string
+          responded_at: string | null
+          response: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type?: string
+          order_id: string
+          responded_at?: string | null
+          response?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: string
+          order_id?: string
+          responded_at?: string | null
+          response?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_notifications_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_stats: {
+        Row: {
+          average_delivery_time: number | null
+          created_at: string
+          customer_rating: number | null
+          date: string
+          driver_id: string
+          id: string
+          total_deliveries: number | null
+          total_distance: number | null
+          total_earnings: number | null
+          updated_at: string
+        }
+        Insert: {
+          average_delivery_time?: number | null
+          created_at?: string
+          customer_rating?: number | null
+          date: string
+          driver_id: string
+          id?: string
+          total_deliveries?: number | null
+          total_distance?: number | null
+          total_earnings?: number | null
+          updated_at?: string
+        }
+        Update: {
+          average_delivery_time?: number | null
+          created_at?: string
+          customer_rating?: number | null
+          date?: string
+          driver_id?: string
+          id?: string
+          total_deliveries?: number | null
+          total_distance?: number | null
+          total_earnings?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_stats_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_drivers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inventory: {
         Row: {
@@ -283,33 +489,42 @@ export type Database = {
       }
       order_assignments: {
         Row: {
+          actual_distance: number | null
           assigned_at: string | null
           assignment_type: string | null
           created_at: string
           delivered_at: string | null
           driver_id: string | null
+          estimated_delivery_time: string | null
+          estimated_pickup_time: string | null
           external_tracking_id: string | null
           id: string
           order_id: string | null
           picked_up_at: string | null
         }
         Insert: {
+          actual_distance?: number | null
           assigned_at?: string | null
           assignment_type?: string | null
           created_at?: string
           delivered_at?: string | null
           driver_id?: string | null
+          estimated_delivery_time?: string | null
+          estimated_pickup_time?: string | null
           external_tracking_id?: string | null
           id?: string
           order_id?: string | null
           picked_up_at?: string | null
         }
         Update: {
+          actual_distance?: number | null
           assigned_at?: string | null
           assignment_type?: string | null
           created_at?: string
           delivered_at?: string | null
           driver_id?: string | null
+          estimated_delivery_time?: string | null
+          estimated_pickup_time?: string | null
           external_tracking_id?: string | null
           id?: string
           order_id?: string | null
@@ -420,10 +635,13 @@ export type Database = {
         Row: {
           created_at: string
           delivery_address_id: string | null
+          delivery_code: string | null
           delivery_fee: number | null
+          driver_earnings: number | null
           estimated_delivery_time: number | null
           id: string
           notes: string | null
+          pickup_time: string | null
           status: Database["public"]["Enums"]["order_status"] | null
           total_amount: number
           updated_at: string
@@ -432,10 +650,13 @@ export type Database = {
         Insert: {
           created_at?: string
           delivery_address_id?: string | null
+          delivery_code?: string | null
           delivery_fee?: number | null
+          driver_earnings?: number | null
           estimated_delivery_time?: number | null
           id?: string
           notes?: string | null
+          pickup_time?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           total_amount: number
           updated_at?: string
@@ -444,10 +665,13 @@ export type Database = {
         Update: {
           created_at?: string
           delivery_address_id?: string | null
+          delivery_code?: string | null
           delivery_fee?: number | null
+          driver_earnings?: number | null
           estimated_delivery_time?: number | null
           id?: string
           notes?: string | null
+          pickup_time?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           total_amount?: number
           updated_at?: string
@@ -634,6 +858,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_delivery_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_sales_stats: {
         Args: { start_date?: string; end_date?: string }
         Returns: {

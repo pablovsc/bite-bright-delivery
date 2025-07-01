@@ -41,6 +41,18 @@ export const useOrderManagement = () => {
               full_name,
               phone
             )
+          ),
+          manual_payment_verifications (
+            id,
+            payment_method_type,
+            origin_bank,
+            amount_paid,
+            reference_number,
+            phone_number_used,
+            payment_proof_url,
+            status,
+            rejection_reason,
+            created_at
           )
         `)
         .order('created_at', { ascending: false });
@@ -56,7 +68,7 @@ export const useOrderManagement = () => {
         throw error;
       }
       
-      console.log('Fetched orders:', data);
+      console.log('Fetched orders with payment verifications:', data);
       return data as Order[];
     }
   });
@@ -103,6 +115,29 @@ export const useOrderManagement = () => {
         },
         () => {
           console.log('Real-time order change detected');
+          queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  // Real-time subscription for payment verifications
+  useEffect(() => {
+    const channel = supabase
+      .channel('payment-verification-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'manual_payment_verifications'
+        },
+        () => {
+          console.log('Real-time payment verification change detected');
           queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
         }
       )

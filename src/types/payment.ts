@@ -28,4 +28,14 @@ export interface ManualPaymentVerification {
   reviewed_at?: string;
   created_at: string;
   updated_at: string;
+  
+  // Relations
+  orders?: {
+    id: string;
+    total_amount: number;
+    profiles?: {
+      full_name?: string;
+      email?: string;
+    };
+  };
 }

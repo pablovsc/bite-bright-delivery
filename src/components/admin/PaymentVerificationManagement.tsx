@@ -10,11 +10,36 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ManualPaymentVerification } from '@/types/payment';
+
+// Extended type that includes the orders relation
+interface PaymentVerificationWithOrders {
+  id: string;
+  order_id: string;
+  payment_method_type: string;
+  origin_bank: string;
+  phone_number_used?: string;
+  amount_paid: number;
+  reference_number: string;
+  payment_proof_url: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejection_reason?: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  created_at: string;
+  updated_at: string;
+  orders?: {
+    id: string;
+    total_amount: number;
+    profiles?: {
+      full_name?: string;
+      email?: string;
+    };
+  };
+}
 
 const PaymentVerificationManagement = () => {
   const queryClient = useQueryClient();
-  const [selectedVerification, setSelectedVerification] = useState<ManualPaymentVerification | null>(null);
+  const [selectedVerification, setSelectedVerification] = useState<PaymentVerificationWithOrders | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
   const { data: verifications, isLoading } = useQuery({
@@ -40,7 +65,7 @@ const PaymentVerificationManagement = () => {
         throw error;
       }
 
-      return data;
+      return data as PaymentVerificationWithOrders[];
     }
   });
 
@@ -90,14 +115,14 @@ const PaymentVerificationManagement = () => {
     }
   };
 
-  const handleApprove = (verification: ManualPaymentVerification) => {
+  const handleApprove = (verification: PaymentVerificationWithOrders) => {
     updateVerificationStatus.mutate({
       verificationId: verification.id,
       status: 'approved'
     });
   };
 
-  const handleReject = (verification: ManualPaymentVerification) => {
+  const handleReject = (verification: PaymentVerificationWithOrders) => {
     if (!rejectionReason.trim()) {
       toast.error('Debes proporcionar una razón para el rechazo');
       return;

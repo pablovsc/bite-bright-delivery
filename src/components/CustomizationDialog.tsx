@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Minus, ArrowRight } from 'lucide-react';
+import { Plus, Minus, ArrowRight, X } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { toast } from 'sonner';
 import type { CompositeDish } from '@/hooks/useCompositeDishes';
@@ -98,6 +97,30 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
     });
   };
 
+  const removeReplacement = (elementId: string, originalElement: any) => {
+    setCustomizations(prev => {
+      const updated = prev.map(custom => {
+        if (custom.elementId === elementId) {
+          return {
+            ...custom,
+            isIncluded: true,
+            replacementItemId: undefined,
+            priceAdjustment: originalElement.additional_price
+          };
+        }
+        return custom;
+      });
+      
+      // Recalculate total price
+      const newTotalPrice = dish.base_price + updated.reduce((sum, custom) => 
+        sum + custom.priceAdjustment, 0
+      );
+      setTotalPrice(newTotalPrice);
+      
+      return updated;
+    });
+  };
+
   const handleAddToCart = () => {
     // Create a MenuItem-compatible object for the customized dish
     const customizedDish = {
@@ -133,6 +156,28 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
     )?.replacement_menu_items;
   };
 
+  // Group elements by type for better organization
+  const groupedElements = dish.dish_optional_elements?.reduce((groups, element) => {
+    const type = element.element_type || 'other';
+    if (!groups[type]) {
+      groups[type] = [];
+    }
+    groups[type].push(element);
+    return groups;
+  }, {} as Record<string, typeof dish.dish_optional_elements>) || {};
+
+  const getTypeLabel = (type: string) => {
+    const labels = {
+      drink: '🥤 Bebidas',
+      side: '🍟 Acompañamientos',
+      bread: '🍞 Pan',
+      sauce: '🥄 Salsas',
+      dessert: '🍰 Postres',
+      other: '🍽️ Otros'
+    };
+    return labels[type] || '🍽️ Otros';
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -159,87 +204,100 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
 
           <Separator />
 
-          {/* Optional Elements (Modifiable) */}
-          {dish.dish_optional_elements && dish.dish_optional_elements.length > 0 && (
+          {/* Optional Elements (Modifiable) - Grouped by type */}
+          {Object.keys(groupedElements).length > 0 && (
             <div>
               <h3 className="font-semibold text-lg mb-3">Elementos Opcionales</h3>
-              <div className="space-y-4">
-                {dish.dish_optional_elements.map((element) => {
-                  const customization = getCustomizationForElement(element.id);
-                  const replacementItem = getReplacementItem(element.id);
-                  
-                  return (
-                    <Card key={element.id}>
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">
-                            {element.element_type === 'drink' ? '🥤' : 
-                             element.element_type === 'side' ? '🍟' : '🍽️'} 
-                            {element.element_type.charAt(0).toUpperCase() + element.element_type.slice(1)}
-                          </CardTitle>
-                          <Button
-                            variant={customization?.isIncluded ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => toggleOptionalElement(element.id, element)}
-                          >
-                            {customization?.isIncluded ? <Minus className="h-4 w-4 mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
-                            {customization?.isIncluded ? 'Quitar' : 'Agregar'}
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      
-                      <CardContent className="pt-0">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <span className="font-medium">
-                              {replacementItem ? replacementItem.name : element.menu_items.name}
-                            </span>
-                            {replacementItem && (
-                              <div className="text-sm text-blue-600 flex items-center gap-1">
-                                <span>{element.menu_items.name}</span>
-                                <ArrowRight className="h-3 w-3" />
-                                <span>{replacementItem.name}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <div className="font-semibold">
-                              {customization?.priceAdjustment ? `+$${customization.priceAdjustment.toFixed(2)}` : 'Gratis'}
-                            </div>
-                          </div>
-                        </div>
+              <div className="space-y-6">
+                {Object.entries(groupedElements).map(([type, elements]) => (
+                  <div key={type}>
+                    <h4 className="font-medium text-base mb-3 text-orange-600">
+                      {getTypeLabel(type)}
+                    </h4>
+                    <div className="space-y-4">
+                      {elements.map((element) => {
+                        const customization = getCustomizationForElement(element.id);
+                        const replacementItem = getReplacementItem(element.id);
                         
-                        {/* Replacement Options */}
-                        {customization?.isIncluded && element.dish_replacement_options && element.dish_replacement_options.length > 0 && (
-                          <div className="space-y-2">
-                            <div className="text-sm font-medium text-gray-700">Cambiar por:</div>
-                            <div className="grid grid-cols-1 gap-2">
-                              {element.dish_replacement_options.map((option) => (
-                                <button
-                                  key={option.id}
-                                  className={`text-left p-2 rounded border text-sm ${
-                                    customization.replacementItemId === option.replacement_menu_items.id
-                                      ? 'border-orange-500 bg-orange-50'
-                                      : 'border-gray-200 hover:border-gray-300'
-                                  }`}
-                                  onClick={() => replaceOptionalElement(element.id, option.replacement_menu_items, element)}
+                        return (
+                          <Card key={element.id} className="border-l-4 border-l-orange-200">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-base">
+                                  {replacementItem ? replacementItem.name : element.menu_items.name}
+                                </CardTitle>
+                                <Button
+                                  variant={customization?.isIncluded ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => toggleOptionalElement(element.id, element)}
+                                  className={customization?.isIncluded ? "bg-orange-600 hover:bg-orange-700" : ""}
                                 >
-                                  <div className="flex justify-between items-center">
-                                    <span>{option.replacement_menu_items.name}</span>
-                                    <span className={option.price_difference > 0 ? 'text-orange-600' : 'text-green-600'}>
-                                      {option.price_difference > 0 ? `+$${option.price_difference.toFixed(2)}` : 
-                                       option.price_difference < 0 ? `-$${Math.abs(option.price_difference).toFixed(2)}` : 'Sin costo'}
-                                    </span>
+                                  {customization?.isIncluded ? <Minus className="h-4 w-4 mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
+                                  {customization?.isIncluded ? 'Quitar' : 'Agregar'}
+                                </Button>
+                              </div>
+                            </CardHeader>
+                            
+                            <CardContent className="pt-0">
+                              <div className="flex items-center justify-between mb-3">
+                                <div>
+                                  {replacementItem && (
+                                    <div className="text-sm text-blue-600 flex items-center gap-1 mb-1">
+                                      <span>{element.menu_items.name}</span>
+                                      <ArrowRight className="h-3 w-3" />
+                                      <span>{replacementItem.name}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => removeReplacement(element.id, element)}
+                                        className="h-6 w-6 p-0 ml-2"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-semibold">
+                                    {customization?.priceAdjustment ? `+$${customization.priceAdjustment.toFixed(2)}` : 'Gratis'}
                                   </div>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                                </div>
+                              </div>
+                              
+                              {/* Replacement Options */}
+                              {customization?.isIncluded && element.dish_replacement_options && element.dish_replacement_options.length > 0 && (
+                                <div className="space-y-2">
+                                  <div className="text-sm font-medium text-gray-700">Cambiar por:</div>
+                                  <div className="grid grid-cols-1 gap-2">
+                                    {element.dish_replacement_options.map((option) => (
+                                      <button
+                                        key={option.id}
+                                        className={`text-left p-2 rounded border text-sm transition-colors ${
+                                          customization.replacementItemId === option.replacement_menu_items.id
+                                            ? 'border-orange-500 bg-orange-50'
+                                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                        }`}
+                                        onClick={() => replaceOptionalElement(element.id, option.replacement_menu_items, element)}
+                                      >
+                                        <div className="flex justify-between items-center">
+                                          <span>{option.replacement_menu_items.name}</span>
+                                          <span className={option.price_difference > 0 ? 'text-orange-600' : option.price_difference < 0 ? 'text-green-600' : 'text-gray-600'}>
+                                            {option.price_difference > 0 ? `+$${option.price_difference.toFixed(2)}` : 
+                                             option.price_difference < 0 ? `-$${Math.abs(option.price_difference).toFixed(2)}` : 'Sin costo'}
+                                          </span>
+                                        </div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

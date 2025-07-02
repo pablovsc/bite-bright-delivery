@@ -236,7 +236,7 @@ const InventoryManagement = () => {
                       </div>
                       <div>
                         <span className="font-medium">Costo Unitario:</span>
-                        <div>€{item.unit_cost}</div>
+                        <div>${item.unit_cost}</div>
                       </div>
                     </div>
                     {item.supplier_info && (
@@ -328,7 +328,7 @@ const AddInventoryForm: React.FC<AddInventoryFormProps> = ({ menuCategories, onS
             <Input id="maxStock" name="maxStock" type="number" defaultValue="1000" required />
           </div>
           <div>
-            <Label htmlFor="unitCost">Costo Unitario (€)</Label>
+            <Label htmlFor="unitCost">Costo Unitario ($)</Label>
             <Input id="unitCost" name="unitCost" type="number" step="0.01" required />
           </div>
         </div>
@@ -398,7 +398,7 @@ const UpdateStockForm: React.FC<UpdateStockFormProps> = ({ item, onSubmit, isLoa
             />
           </div>
           <div>
-            <Label htmlFor="unitCost">Costo Unitario (€)</Label>
+            <Label htmlFor="unitCost">Costo Unitario ($)</Label>
             <Input 
               id="unitCost" 
               name="unitCost" 

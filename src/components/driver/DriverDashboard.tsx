@@ -147,7 +147,7 @@ const DriverDashboard = ({ driverId, driverInfo }: DriverDashboardProps) => {
               <div>
                 <p className="text-sm text-gray-600">Ganancias Hoy</p>
                 <p className="text-2xl font-bold">
-                  €{todayStats?.total_earnings?.toFixed(2) || '0.00'}
+                  ${todayStats?.total_earnings?.toFixed(2) || '0.00'}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-green-600" />

@@ -100,7 +100,7 @@ export const Cart = () => {
                 <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-medium">{item.name}</h4>
-                    <p className="text-sm text-gray-600">€{item.price.toFixed(2)} c/u</p>
+                    <p className="text-sm text-gray-600">${item.price.toFixed(2)} c/u</p>
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -137,15 +137,15 @@ export const Cart = () => {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span>€{totalPrice.toFixed(2)}</span>
+                  <span>${totalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Envío:</span>
-                  <span>€3.50</span>
+                  <span>$3.50</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total:</span>
-                  <span>€{(totalPrice + 3.50).toFixed(2)}</span>
+                  <span>${(totalPrice + 3.50).toFixed(2)}</span>
                 </div>
               </div>
               

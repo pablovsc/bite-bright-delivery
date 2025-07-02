@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 
 type MenuCategory = Tables<'menu_categories'> & {
-  menu_items: Tables<'menu_items'>[];
+  menu_items: (Tables<'menu_items'> & { display_order?: number })[];
+  display_order?: number;
 };
 
 export const useMenu = () => {
@@ -18,10 +19,19 @@ export const useMenu = () => {
           menu_items (*)
         `)
         .eq('is_active', true)
-        .order('display_order');
+        .order('display_order', { ascending: true });
 
       if (error) throw error;
-      return data as MenuCategory[];
+      
+      // Sort menu items within each category by display_order
+      const sortedData = data.map(category => ({
+        ...category,
+        menu_items: category.menu_items.sort((a: any, b: any) => 
+          (a.display_order || 0) - (b.display_order || 0)
+        )
+      }));
+      
+      return sortedData as MenuCategory[];
     }
   });
 };

@@ -24,7 +24,7 @@ const OrderHeader = ({ order }: OrderHeaderProps) => {
         </div>
       </div>
       <div className="text-right">
-        <div className="text-lg font-semibold">€{order.total_amount}</div>
+        <div className="text-lg font-semibold">${order.total_amount}</div>
         <div className="text-sm text-gray-500">
           {order.estimated_delivery_time} min estimado
         </div>

@@ -482,7 +482,7 @@ const Profile = () => {
                               <div>
                                 <h4 className="font-medium">Pedido #{order.id.slice(-8)}</h4>
                                 <p className="text-sm text-gray-600">
-                                  {new Date(order.created_at).toLocaleDateString()} - €{order.total_amount.toFixed(2)}
+                                  {new Date(order.created_at).toLocaleDateString()} - ${order.total_amount.toFixed(2)}
                                 </p>
                               </div>
                               <div className="flex flex-col gap-2 items-end">

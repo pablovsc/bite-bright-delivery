@@ -205,7 +205,7 @@ const PromotionManagement = () => {
                         <Percent className="w-3 h-3" />
                         <span>
                           {promotion.discount_type === 'percentage' && `${promotion.discount_value}%`}
-                          {promotion.discount_type === 'fixed_amount' && `€${promotion.discount_value}`}
+                          {promotion.discount_type === 'fixed_amount' && `$${promotion.discount_value}`}
                           {promotion.discount_type === 'buy_x_get_y' && `Compra ${promotion.discount_value}`}
                         </span>
                       </div>
@@ -219,7 +219,7 @@ const PromotionManagement = () => {
                       
                       {promotion.min_order_amount && (
                         <div>
-                          Mínimo: €{promotion.min_order_amount}
+                          Mínimo: ${promotion.min_order_amount}
                         </div>
                       )}
                       
@@ -380,7 +380,7 @@ const PromotionForm: React.FC<PromotionFormProps> = ({ promotion, menuCategories
         
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="min_order_amount">Pedido Mínimo (€)</Label>
+            <Label htmlFor="min_order_amount">Pedido Mínimo ($)</Label>
             <Input 
               id="min_order_amount" 
               name="min_order_amount" 
@@ -390,7 +390,7 @@ const PromotionForm: React.FC<PromotionFormProps> = ({ promotion, menuCategories
             />
           </div>
           <div>
-            <Label htmlFor="max_discount_amount">Descuento Máximo (€)</Label>
+            <Label htmlFor="max_discount_amount">Descuento Máximo ($)</Label>
             <Input 
               id="max_discount_amount" 
               name="max_discount_amount" 

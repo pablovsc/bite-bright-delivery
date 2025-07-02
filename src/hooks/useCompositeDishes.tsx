@@ -142,7 +142,26 @@ export const useCompositeDishes = () => {
   });
 
   const updateCompositeDish = useMutation({
-    mutationFn: async ({ id, ...updateData }: { id: string } & Partial<CompositeDish>) => {
+    mutationFn: async ({ id, name, description, base_price, category_id, preparation_time, image_url }: { 
+      id: string;
+      name?: string;
+      description?: string;
+      base_price?: number;
+      category_id?: string;
+      preparation_time?: string;
+      image_url?: string;
+    }) => {
+      // Solo actualizar los campos básicos del plato compuesto
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+      if (base_price !== undefined) updateData.base_price = base_price;
+      if (category_id !== undefined) updateData.category_id = category_id;
+      if (preparation_time !== undefined) updateData.preparation_time = preparation_time;
+      if (image_url !== undefined) updateData.image_url = image_url;
+      
+      updateData.updated_at = new Date().toISOString();
+
       const { error } = await supabase
         .from('composite_dishes')
         .update(updateData)

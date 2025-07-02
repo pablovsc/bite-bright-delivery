@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Upload, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, X, ArrowUpDown } from 'lucide-react';
 import { useMenu } from '@/hooks/useMenu';
+import CategoryOrderingDialog from './CategoryOrderingDialog';
 import type { Tables } from '@/integrations/supabase/types';
 
 type MenuCategory = Tables<'menu_categories'>;
@@ -23,6 +24,7 @@ const MenuManagement = () => {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [isCategoryOrderingOpen, setIsCategoryOrderingOpen] = useState(false);
 
   const addCategory = useMutation({
     mutationFn: async (data: { name: string; description: string }) => {
@@ -126,6 +128,14 @@ const MenuManagement = () => {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Gestión del Menú</h3>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsCategoryOrderingOpen(true)}
+          >
+            <ArrowUpDown className="w-4 h-4 mr-2" />
+            Ordenar Categorías
+          </Button>
+          
           <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -217,7 +227,7 @@ const MenuManagement = () => {
                         </div>
                         <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                         <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                          <span>€{item.price}</span>
+                          <span>${item.price}</span>
                           <span>{item.preparation_time}</span>
                           <span>⭐ {item.rating}/5</span>
                         </div>
@@ -262,6 +272,12 @@ const MenuManagement = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      <CategoryOrderingDialog 
+        categories={categories || []}
+        isOpen={isCategoryOrderingOpen}
+        onClose={() => setIsCategoryOrderingOpen(false)}
+      />
     </div>
   );
 };
@@ -404,7 +420,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ categories, item, onSubmit, isLoadi
         
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="price">Precio (€)</Label>
+            <Label htmlFor="price">Precio ($)</Label>
             <Input 
               id="price" 
               name="price" 

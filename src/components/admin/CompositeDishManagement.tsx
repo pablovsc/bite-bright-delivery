@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCompositeDishes } from '@/hooks/useCompositeDishes';
 import { useMenu } from '@/hooks/useMenu';
@@ -18,9 +17,10 @@ type MenuItem = Tables<'menu_items'>;
 type MenuCategory = Tables<'menu_categories'>;
 
 const CompositeDishManagement = () => {
-  const { compositeDishes, isLoading, createCompositeDish, deleteCompositeDish } = useCompositeDishes();
+  const { compositeDishes, isLoading, createCompositeDish, updateCompositeDish, deleteCompositeDish } = useCompositeDishes();
   const { data: menuData } = useMenu();
   const [isCreating, setIsCreating] = useState(false);
+  const [editingDish, setEditingDish] = useState(null);
 
   const categories = menuData || [];
   const allMenuItems = categories.flatMap(cat => cat.menu_items || []);
@@ -66,8 +66,36 @@ const CompositeDishManagement = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-lg font-bold text-orange-600">
-                    €{dish.base_price}
+                    ${dish.base_price}
                   </span>
+                  <Dialog open={editingDish?.id === dish.id} onOpenChange={(open) => setEditingDish(open ? dish : null)}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingDish(dish)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Editar Plato Compuesto</DialogTitle>
+                      </DialogHeader>
+                      <CompositeDishForm
+                        categories={categories}
+                        menuItems={allMenuItems}
+                        initialData={dish}
+                        onSubmit={(data) => {
+                          updateCompositeDish.mutate({ id: dish.id, ...data });
+                          setEditingDish(null);
+                        }}
+                        onClose={() => setEditingDish(null)}
+                        isLoading={updateCompositeDish.isPending}
+                        isEditing={true}
+                      />
+                    </DialogContent>
+                  </Dialog>
                   <Button
                     variant="outline"
                     size="sm"
@@ -117,7 +145,7 @@ const CompositeDishManagement = () => {
                               )}
                               {optionalElement.additional_price > 0 && (
                                 <span className="text-orange-600">
-                                  +€{optionalElement.additional_price}
+                                  +${optionalElement.additional_price}
                                 </span>
                               )}
                             </div>
@@ -132,7 +160,7 @@ const CompositeDishManagement = () => {
                                     <span>{replacement.replacement_menu_items.name}</span>
                                     {replacement.price_difference !== 0 && (
                                       <span className={replacement.price_difference > 0 ? 'text-orange-600' : 'text-green-600'}>
-                                        {replacement.price_difference > 0 ? '+' : ''}€{replacement.price_difference}
+                                        {replacement.price_difference > 0 ? '+' : ''}${replacement.price_difference}
                                       </span>
                                     )}
                                   </div>
@@ -171,6 +199,8 @@ interface CompositeDishFormProps {
   onSubmit: (data: any) => void;
   onClose: () => void;
   isLoading: boolean;
+  initialData?: any;
+  isEditing?: boolean;
 }
 
 const CompositeDishForm: React.FC<CompositeDishFormProps> = ({
@@ -178,22 +208,30 @@ const CompositeDishForm: React.FC<CompositeDishFormProps> = ({
   menuItems,
   onSubmit,
   onClose,
-  isLoading
+  isLoading,
+  initialData,
+  isEditing = false
 }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    base_price: 0,
-    category_id: '',
-    preparation_time: '25-30 min',
-    base_products: [] as { menu_item_id: string; quantity: number }[],
-    optional_elements: [] as {
-      menu_item_id: string;
-      is_included_by_default: boolean;
-      additional_price: number;
-      element_type: string;
-      replacement_options: { replacement_item_id: string; price_difference: number }[];
-    }[]
+    name: initialData?.name || '',
+    description: initialData?.description || '',
+    base_price: initialData?.base_price || 0,
+    category_id: initialData?.category_id || '',
+    preparation_time: initialData?.preparation_time || '25-30 min',
+    base_products: initialData?.dish_base_products?.map(bp => ({
+      menu_item_id: bp.menu_item_id,
+      quantity: bp.quantity
+    })) || [],
+    optional_elements: initialData?.dish_optional_elements?.map(oe => ({
+      menu_item_id: oe.menu_item_id,
+      is_included_by_default: oe.is_included_by_default,
+      additional_price: oe.additional_price,
+      element_type: oe.element_type,
+      replacement_options: oe.dish_replacement_options?.map(ro => ({
+        replacement_item_id: ro.replacement_item_id,
+        price_difference: ro.price_difference
+      })) || []
+    })) || []
   });
 
   const addBaseProduct = () => {
@@ -281,7 +319,7 @@ const CompositeDishForm: React.FC<CompositeDishFormProps> = ({
           />
         </div>
         <div>
-          <Label htmlFor="base_price">Precio Base (€)</Label>
+          <Label htmlFor="base_price">Precio Base ($)</Label>
           <Input
             id="base_price"
             type="number"
@@ -442,7 +480,7 @@ const CompositeDishForm: React.FC<CompositeDishFormProps> = ({
               </div>
               
               <div>
-                <Label className="text-sm">Precio adicional (€)</Label>
+                <Label className="text-sm">Precio adicional ($)</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -487,7 +525,7 @@ const CompositeDishForm: React.FC<CompositeDishFormProps> = ({
           Cancelar
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Creando...' : 'Crear Plato Compuesto'}
+          {isLoading ? (isEditing ? 'Actualizando...' : 'Creando...') : (isEditing ? 'Actualizar Plato Compuesto' : 'Crear Plato Compuesto')}
         </Button>
       </div>
     </form>

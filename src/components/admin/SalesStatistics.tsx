@@ -102,7 +102,7 @@ const SalesStatistics = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Ingresos Totales</p>
-                <p className="text-2xl font-bold">€{Number(stats?.total_revenue || 0).toFixed(2)}</p>
+                <p className="text-2xl font-bold">${Number(stats?.total_revenue || 0).toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -116,7 +116,7 @@ const SalesStatistics = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Valor Promedio</p>
-                <p className="text-2xl font-bold">€{Number(stats?.avg_order_value || 0).toFixed(2)}</p>
+                <p className="text-2xl font-bold">${Number(stats?.avg_order_value || 0).toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -152,7 +152,7 @@ const SalesStatistics = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip formatter={(value: any) => [`€${value}`, 'Ingresos']} />
+                <Tooltip formatter={(value: any) => [`$${value}`, 'Ingresos']} />
                 <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
@@ -193,7 +193,7 @@ const SalesStatistics = () => {
                     <p className="text-sm text-gray-600">Cantidad vendida: {item.total_quantity}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">€{Number(item.total_revenue || 0).toFixed(2)}</p>
+                    <p className="font-semibold">${Number(item.total_revenue || 0).toFixed(2)}</p>
                   </div>
                 </div>
               ))}
@@ -223,7 +223,7 @@ const SalesStatistics = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: any) => [`€${value}`, 'Ingresos']} />
+                <Tooltip formatter={(value: any) => [`$${value}`, 'Ingresos']} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -251,9 +251,9 @@ const SalesStatistics = () => {
                   <tr key={index} className="border-b">
                     <td className="p-2">{new Date(day.date).toLocaleDateString()}</td>
                     <td className="text-right p-2">{day.orders}</td>
-                    <td className="text-right p-2">€{Number(day.revenue || 0).toFixed(2)}</td>
+                    <td className="text-right p-2">${Number(day.revenue || 0).toFixed(2)}</td>
                     <td className="text-right p-2">
-                      €{day.orders > 0 ? (day.revenue / day.orders).toFixed(2) : '0.00'}
+                      ${day.orders > 0 ? (day.revenue / day.orders).toFixed(2) : '0.00'}
                     </td>
                   </tr>
                 ))}

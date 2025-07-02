@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, Link } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   ChefHat, 
@@ -86,26 +87,7 @@ const Admin = () => {
       <div className="border-b bg-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <h1 className="text-2xl font-bold text-orange-600">BiteBright</h1>
-              
-              {/* Desktop Navigation */}
-              <nav className="hidden lg:flex space-x-6">
-                {navigationItems.slice(0, 4).map((item) => (
-                  <button
-                    key={item.value}
-                    onClick={() => setActiveTab(item.value)}
-                    className={`px-3 py-2 text-sm font-medium ${
-                      activeTab === item.value 
-                        ? 'text-orange-600 border-b-2 border-orange-600' 
-                        : 'text-gray-600 hover:text-orange-600'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </nav>
-            </div>
+            <h1 className="text-2xl font-bold text-orange-600">BiteBright</h1>
             <div className="flex items-center space-x-3">
               <span className="text-sm text-gray-600">Ana Admin</span>
               <Link to="/">
@@ -118,17 +100,17 @@ const Admin = () => {
           </div>
         </div>
         
-        {/* Mobile/Tablet Horizontal Scrollable Navigation */}
-        <div className="lg:hidden border-t bg-white">
+        {/* Unified Horizontal Navigation for all screen sizes */}
+        <div className="border-t bg-white">
           <div className="overflow-x-auto">
             <div className="flex space-x-1 px-4 py-2 min-w-max">
               {navigationItems.map((item) => (
                 <button
                   key={item.value}
                   onClick={() => setActiveTab(item.value)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                     activeTab === item.value
-                      ? 'bg-orange-100 text-orange-600'
+                      ? 'bg-orange-500 text-white'
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
@@ -143,16 +125,6 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* Hide TabsList on mobile since we have the horizontal nav */}
-          <TabsList className="hidden lg:grid w-full grid-cols-10">
-            {navigationItems.map((item) => (
-              <TabsTrigger key={item.value} value={item.value} className="flex items-center gap-2">
-                <item.icon className="w-4 h-4" />
-                {item.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
           <TabsContent value="dashboard" className="space-y-6">
             <DashboardOverview />
           </TabsContent>

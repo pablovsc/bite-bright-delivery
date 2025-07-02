@@ -14,7 +14,7 @@ const OrderItems = ({ order }: OrderItemsProps) => {
         {order.order_items?.map((item) => (
           <div key={item.id} className="flex justify-between text-sm">
             <span>{item.quantity}x {item.menu_items?.name}</span>
-            <span>€{item.total_price}</span>
+            <span>${item.total_price}</span>
           </div>
         ))}
       </div>

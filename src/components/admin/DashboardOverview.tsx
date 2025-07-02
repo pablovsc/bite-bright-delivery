@@ -103,7 +103,7 @@ const DashboardOverview = () => {
               <div>
                 <p className="text-sm text-gray-600">Ingresos Totales</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  €{dashboardStats?.totalIncome?.toFixed(2) || '0.00'}
+                  ${dashboardStats?.totalIncome?.toFixed(2) || '0.00'}
                 </p>
               </div>
             </div>

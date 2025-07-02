@@ -1,8 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { DriverOrder } from '@/types/driver';
+
+type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 
 export const useDriverOrders = (driverId?: string) => {
   const queryClient = useQueryClient();
@@ -70,7 +73,7 @@ export const useDriverOrders = (driverId?: string) => {
       assignmentUpdate 
     }: { 
       orderId: string; 
-      status: string;
+      status: OrderStatus;
       assignmentUpdate?: {
         picked_up_at?: string;
         delivered_at?: string;
@@ -118,7 +121,7 @@ export const useDriverOrders = (driverId?: string) => {
   const pickupOrder = (orderId: string) => {
     updateOrderStatus.mutate({
       orderId,
-      status: 'ready',
+      status: 'ready' as OrderStatus,
       assignmentUpdate: {
         picked_up_at: new Date().toISOString()
       }
@@ -128,7 +131,7 @@ export const useDriverOrders = (driverId?: string) => {
   const deliverOrder = (orderId: string) => {
     updateOrderStatus.mutate({
       orderId,
-      status: 'delivered',
+      status: 'delivered' as OrderStatus,
       assignmentUpdate: {
         delivered_at: new Date().toISOString()
       }

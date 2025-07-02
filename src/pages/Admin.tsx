@@ -67,6 +67,18 @@ const Admin = () => {
     };
   }, []);
 
+  const navigationItems = [
+    { value: 'dashboard', label: 'Dashboard', icon: Grid3X3 },
+    { value: 'orders', label: 'Pedidos', icon: ShoppingCart },
+    { value: 'menu', label: 'Menú', icon: ChefHat },
+    { value: 'inventory', label: 'Inventario', icon: Package },
+    { value: 'drivers', label: 'Repartidores', icon: Users },
+    { value: 'stats', label: 'Estadísticas', icon: BarChart3 },
+    { value: 'promotions', label: 'Promociones', icon: Gift },
+    { value: 'payment-methods', label: 'Métodos Pago', icon: CreditCard },
+    { value: 'payment-verifications', label: 'Verificaciones', icon: CheckCircle }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -75,47 +87,22 @@ const Admin = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
               <h1 className="text-2xl font-bold text-orange-600">BiteBright</h1>
-              <nav className="hidden md:flex space-x-6">
-                <button
-                  onClick={() => setActiveTab('dashboard')}
-                  className={`px-3 py-2 text-sm font-medium ${
-                    activeTab === 'dashboard' 
-                      ? 'text-orange-600 border-b-2 border-orange-600' 
-                      : 'text-gray-600 hover:text-orange-600'
-                  }`}
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => setActiveTab('orders')}
-                  className={`px-3 py-2 text-sm font-medium ${
-                    activeTab === 'orders' 
-                      ? 'text-orange-600 border-b-2 border-orange-600' 
-                      : 'text-gray-600 hover:text-orange-600'
-                  }`}
-                >
-                  Pedidos
-                </button>
-                <button
-                  onClick={() => setActiveTab('menu')}
-                  className={`px-3 py-2 text-sm font-medium ${
-                    activeTab === 'menu' 
-                      ? 'text-orange-600 border-b-2 border-orange-600' 
-                      : 'text-gray-600 hover:text-orange-600'
-                  }`}
-                >
-                  Menú
-                </button>
-                <button
-                  onClick={() => setActiveTab('stats')}
-                  className={`px-3 py-2 text-sm font-medium ${
-                    activeTab === 'stats' 
-                      ? 'text-orange-600 border-b-2 border-orange-600' 
-                      : 'text-gray-600 hover:text-orange-600'
-                  }`}
-                >
-                  Estadísticas
-                </button>
+              
+              {/* Desktop Navigation */}
+              <nav className="hidden lg:flex space-x-6">
+                {navigationItems.slice(0, 4).map((item) => (
+                  <button
+                    key={item.value}
+                    onClick={() => setActiveTab(item.value)}
+                    className={`px-3 py-2 text-sm font-medium ${
+                      activeTab === item.value 
+                        ? 'text-orange-600 border-b-2 border-orange-600' 
+                        : 'text-gray-600 hover:text-orange-600'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </nav>
             </div>
             <div className="flex items-center space-x-3">
@@ -129,47 +116,40 @@ const Admin = () => {
             </div>
           </div>
         </div>
+        
+        {/* Mobile/Tablet Horizontal Scrollable Navigation */}
+        <div className="lg:hidden border-t bg-white">
+          <div className="overflow-x-auto">
+            <div className="flex space-x-1 px-4 py-2 min-w-max">
+              {navigationItems.map((item) => (
+                <button
+                  key={item.value}
+                  onClick={() => setActiveTab(item.value)}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                    activeTab === item.value
+                      ? 'bg-orange-100 text-orange-600'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <Grid3X3 className="w-4 h-4" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="flex items-center gap-2">
-              <ShoppingCart className="w-4 h-4" />
-              Pedidos
-            </TabsTrigger>
-            <TabsTrigger value="menu" className="flex items-center gap-2">
-              <ChefHat className="w-4 h-4" />
-              Menú
-            </TabsTrigger>
-            <TabsTrigger value="inventory" className="flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              Inventario
-            </TabsTrigger>
-            <TabsTrigger value="drivers" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Repartidores
-            </TabsTrigger>
-            <TabsTrigger value="stats" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Estadísticas
-            </TabsTrigger>
-            <TabsTrigger value="promotions" className="flex items-center gap-2">
-              <Gift className="w-4 h-4" />
-              Promociones
-            </TabsTrigger>
-            <TabsTrigger value="payment-methods" className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              Métodos Pago
-            </TabsTrigger>
-            <TabsTrigger value="payment-verifications" className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              Verificaciones
-            </TabsTrigger>
+          {/* Hide TabsList on mobile since we have the horizontal nav */}
+          <TabsList className="hidden lg:grid w-full grid-cols-9">
+            {navigationItems.map((item) => (
+              <TabsTrigger key={item.value} value={item.value} className="flex items-center gap-2">
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">

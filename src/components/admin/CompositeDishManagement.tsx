@@ -268,6 +268,25 @@ const CompositeDishForm: React.FC<CompositeDishFormProps> = ({
     }));
   };
 
+  const addReplacementOption = (elementIndex: number) => {
+    setFormData(prev => {
+      const newElements = [...prev.optional_elements];
+      newElements[elementIndex].replacement_options.push({
+        replacement_item_id: '',
+        price_difference: 0
+      });
+      return { ...prev, optional_elements: newElements };
+    });
+  };
+
+  const removeReplacementOption = (elementIndex: number, optionIndex: number) => {
+    setFormData(prev => {
+      const newElements = [...prev.optional_elements];
+      newElements[elementIndex].replacement_options = newElements[elementIndex].replacement_options.filter((_, i) => i !== optionIndex);
+      return { ...prev, optional_elements: newElements };
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -298,7 +317,10 @@ const CompositeDishForm: React.FC<CompositeDishFormProps> = ({
       // Filter out base products with empty menu_item_id
       base_products: formData.base_products.filter(product => product.menu_item_id),
       // Filter out optional elements with empty menu_item_id
-      optional_elements: formData.optional_elements.filter(element => element.menu_item_id)
+      optional_elements: formData.optional_elements.filter(element => element.menu_item_id).map(element => ({
+        ...element,
+        replacement_options: element.replacement_options.filter(option => option.replacement_item_id)
+      }))
     };
 
     console.log('Submitting composite dish data:', cleanedData);
@@ -511,10 +533,75 @@ const CompositeDishForm: React.FC<CompositeDishFormProps> = ({
                     <SelectItem value="drink">Bebida</SelectItem>
                     <SelectItem value="bread">Pan</SelectItem>
                     <SelectItem value="sauce">Salsa</SelectItem>
+                    <SelectItem value="dessert">Postre</SelectItem>
                     <SelectItem value="other">Otro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Replacement Options */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Opciones de Reemplazo</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addReplacementOption(index)}
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Agregar Reemplazo
+                </Button>
+              </div>
+              
+              {element.replacement_options.map((option, optionIndex) => (
+                <div key={optionIndex} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                  <Select
+                    value={option.replacement_item_id}
+                    onValueChange={(value) => {
+                      const newElements = [...formData.optional_elements];
+                      newElements[index].replacement_options[optionIndex].replacement_item_id = value;
+                      setFormData(prev => ({ ...prev, optional_elements: newElements }));
+                    }}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Producto de reemplazo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {menuItems
+                        .filter(item => item.id !== element.menu_item_id) // No permitir reemplazar por el mismo producto
+                        .map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={option.price_difference}
+                    onChange={(e) => {
+                      const newElements = [...formData.optional_elements];
+                      newElements[index].replacement_options[optionIndex].price_difference = parseFloat(e.target.value) || 0;
+                      setFormData(prev => ({ ...prev, optional_elements: newElements }));
+                    }}
+                    className="w-24"
+                    placeholder="Dif. $"
+                  />
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeReplacementOption(index, optionIndex)}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
             </div>
           </div>
         ))}

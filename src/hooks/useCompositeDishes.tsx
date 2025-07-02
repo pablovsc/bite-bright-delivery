@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -142,38 +141,115 @@ export const useCompositeDishes = () => {
   });
 
   const updateCompositeDish = useMutation({
-    mutationFn: async ({ id, name, description, base_price, category_id, preparation_time, image_url }: { 
+    mutationFn: async (dishData: {
       id: string;
-      name?: string;
-      description?: string;
-      base_price?: number;
-      category_id?: string;
-      preparation_time?: string;
+      name: string;
+      description: string;
+      base_price: number;
+      category_id: string;
+      preparation_time: string;
       image_url?: string;
+      base_products: { menu_item_id: string; quantity: number }[];
+      optional_elements: {
+        menu_item_id: string;
+        is_included_by_default: boolean;
+        additional_price: number;
+        element_type: string;
+        replacement_options?: {
+          replacement_item_id: string;
+          price_difference: number;
+        }[];
+      }[];
     }) => {
-      // Solo actualizar los campos básicos del plato compuesto
-      const updateData: any = {};
-      if (name !== undefined) updateData.name = name;
-      if (description !== undefined) updateData.description = description;
-      if (base_price !== undefined) updateData.base_price = base_price;
-      if (category_id !== undefined) updateData.category_id = category_id;
-      if (preparation_time !== undefined) updateData.preparation_time = preparation_time;
-      if (image_url !== undefined) updateData.image_url = image_url;
-      
-      updateData.updated_at = new Date().toISOString();
+      console.log('Updating composite dish:', dishData);
 
-      const { error } = await supabase
+      // 1. Actualizar información básica del plato
+      const { error: dishError } = await supabase
         .from('composite_dishes')
-        .update(updateData)
-        .eq('id', id);
+        .update({
+          name: dishData.name,
+          description: dishData.description,
+          base_price: dishData.base_price,
+          category_id: dishData.category_id,
+          preparation_time: dishData.preparation_time,
+          image_url: dishData.image_url,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', dishData.id);
 
-      if (error) throw error;
+      if (dishError) throw dishError;
+
+      // 2. Eliminar productos base existentes
+      const { error: deleteBaseError } = await supabase
+        .from('dish_base_products')
+        .delete()
+        .eq('dish_id', dishData.id);
+
+      if (deleteBaseError) throw deleteBaseError;
+
+      // 3. Eliminar elementos opcionales existentes (esto también eliminará las opciones de reemplazo por CASCADE)
+      const { error: deleteOptionalError } = await supabase
+        .from('dish_optional_elements')
+        .delete()
+        .eq('dish_id', dishData.id);
+
+      if (deleteOptionalError) throw deleteOptionalError;
+
+      // 4. Insertar nuevos productos base
+      if (dishData.base_products.length > 0) {
+        const { error: baseError } = await supabase
+          .from('dish_base_products')
+          .insert(
+            dishData.base_products.map(product => ({
+              dish_id: dishData.id,
+              menu_item_id: product.menu_item_id,
+              quantity: product.quantity
+            }))
+          );
+
+        if (baseError) throw baseError;
+      }
+
+      // 5. Insertar nuevos elementos opcionales
+      for (const element of dishData.optional_elements) {
+        const { data: optionalElement, error: elementError } = await supabase
+          .from('dish_optional_elements')
+          .insert([{
+            dish_id: dishData.id,
+            menu_item_id: element.menu_item_id,
+            is_included_by_default: element.is_included_by_default,
+            additional_price: element.additional_price,
+            element_type: element.element_type
+          }])
+          .select()
+          .single();
+
+        if (elementError) throw elementError;
+
+        // 6. Insertar opciones de reemplazo si existen
+        if (element.replacement_options && element.replacement_options.length > 0) {
+          const { error: replacementError } = await supabase
+            .from('dish_replacement_options')
+            .insert(
+              element.replacement_options.map(option => ({
+                optional_element_id: optionalElement.id,
+                replacement_item_id: option.replacement_item_id,
+                price_difference: option.price_difference
+              }))
+            );
+
+          if (replacementError) throw replacementError;
+        }
+      }
+
+      return dishData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['composite-dishes'] });
       toast.success('Plato compuesto actualizado exitosamente');
     },
     onError: (error) => {
+      console.error('Error updating composite dish:', error);
       toast.error('Error al actualizar plato compuesto: ' + error.message);
     }
   });

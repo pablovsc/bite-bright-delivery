@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,9 +14,11 @@ import {
   LogOut,
   Home,
   CreditCard,
-  CheckCircle
+  CheckCircle,
+  Grid3X3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import DashboardOverview from '@/components/admin/DashboardOverview';
 import MenuManagement from '@/components/admin/MenuManagement';
 import InventoryManagement from '@/components/admin/InventoryManagement';
 import OrderManagement from '@/components/admin/OrderManagement';
@@ -28,6 +30,7 @@ import PaymentVerificationManagement from '@/components/admin/PaymentVerificatio
 
 const Admin = () => {
   const { user, signOut } = useAuth();
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   if (!user) {
     return <Navigate to="/auth" replace />;
@@ -37,34 +40,104 @@ const Admin = () => {
     await signOut();
   };
 
+  useEffect(() => {
+    const handleQuickAccess = (event: CustomEvent) => {
+      const value = event.detail;
+      switch (value) {
+        case 'orders':
+          setActiveTab('orders');
+          break;
+        case 'menu':
+          setActiveTab('menu');
+          break;
+        case 'stats':
+          setActiveTab('stats');
+          break;
+        case 'customer-view':
+          window.open('/', '_blank');
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('quickAccess', handleQuickAccess as EventListener);
+    return () => {
+      window.removeEventListener('quickAccess', handleQuickAccess as EventListener);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header */}
       <div className="border-b bg-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Panel de Administración</h1>
-              <p className="text-gray-600">Gestiona tu restaurante</p>
+            <div className="flex items-center space-x-6">
+              <h1 className="text-2xl font-bold text-orange-600">BiteBright</h1>
+              <nav className="hidden md:flex space-x-6">
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`px-3 py-2 text-sm font-medium ${
+                    activeTab === 'dashboard' 
+                      ? 'text-orange-600 border-b-2 border-orange-600' 
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                >
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => setActiveTab('orders')}
+                  className={`px-3 py-2 text-sm font-medium ${
+                    activeTab === 'orders' 
+                      ? 'text-orange-600 border-b-2 border-orange-600' 
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                >
+                  Pedidos
+                </button>
+                <button
+                  onClick={() => setActiveTab('menu')}
+                  className={`px-3 py-2 text-sm font-medium ${
+                    activeTab === 'menu' 
+                      ? 'text-orange-600 border-b-2 border-orange-600' 
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                >
+                  Menú
+                </button>
+                <button
+                  onClick={() => setActiveTab('stats')}
+                  className={`px-3 py-2 text-sm font-medium ${
+                    activeTab === 'stats' 
+                      ? 'text-orange-600 border-b-2 border-orange-600' 
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                >
+                  Estadísticas
+                </button>
+              </nav>
             </div>
             <div className="flex items-center space-x-3">
+              <span className="text-sm text-gray-600">Ana Admin</span>
               <Link to="/">
-                <Button variant="outline">
+                <Button variant="outline" size="sm">
                   <Home className="w-4 h-4 mr-2" />
-                  Ir al Inicio
+                  Salir
                 </Button>
               </Link>
-              <Button onClick={handleSignOut} variant="outline">
-                <LogOut className="w-4 h-4 mr-2" />
-                Cerrar Sesión
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-9">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <Grid3X3 className="w-4 h-4" />
+              Dashboard
+            </TabsTrigger>
             <TabsTrigger value="orders" className="flex items-center gap-2">
               <ShoppingCart className="w-4 h-4" />
               Pedidos
@@ -98,6 +171,10 @@ const Admin = () => {
               Verificaciones
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-6">
+            <DashboardOverview />
+          </TabsContent>
 
           <TabsContent value="orders" className="space-y-6">
             <Card>

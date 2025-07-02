@@ -238,7 +238,33 @@ const CompositeDishForm: React.FC<CompositeDishFormProps> = ({
       return;
     }
 
-    onSubmit(formData);
+    // Validate that all base products have valid menu_item_id
+    const invalidBaseProducts = formData.base_products.some(product => !product.menu_item_id);
+    if (invalidBaseProducts) {
+      toast.error('Todos los productos base deben tener un elemento seleccionado');
+      return;
+    }
+
+    // Validate that all optional elements have valid menu_item_id
+    const invalidOptionalElements = formData.optional_elements.some(element => !element.menu_item_id);
+    if (invalidOptionalElements) {
+      toast.error('Todos los elementos opcionales deben tener un elemento seleccionado');
+      return;
+    }
+
+    // Clean up the form data before submitting
+    const cleanedData = {
+      ...formData,
+      // Convert empty category_id to null
+      category_id: formData.category_id || null,
+      // Filter out base products with empty menu_item_id
+      base_products: formData.base_products.filter(product => product.menu_item_id),
+      // Filter out optional elements with empty menu_item_id
+      optional_elements: formData.optional_elements.filter(element => element.menu_item_id)
+    };
+
+    console.log('Submitting composite dish data:', cleanedData);
+    onSubmit(cleanedData);
     onClose();
   };
 

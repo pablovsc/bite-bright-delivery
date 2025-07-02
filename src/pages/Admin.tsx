@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, Link } from 'react-router-dom';
@@ -27,6 +26,7 @@ import SalesStatistics from '@/components/admin/SalesStatistics';
 import PromotionManagement from '@/components/admin/PromotionManagement';
 import PaymentMethodsManagement from '@/components/admin/PaymentMethodsManagement';
 import PaymentVerificationManagement from '@/components/admin/PaymentVerificationManagement';
+import CompositeDishManagement from '@/components/admin/CompositeDishManagement';
 
 const Admin = () => {
   const { user, signOut } = useAuth();
@@ -71,6 +71,7 @@ const Admin = () => {
     { value: 'dashboard', label: 'Dashboard', icon: Grid3X3 },
     { value: 'orders', label: 'Pedidos', icon: ShoppingCart },
     { value: 'menu', label: 'Menú', icon: ChefHat },
+    { value: 'composite-dishes', label: 'Platos Compuestos', icon: Package },
     { value: 'inventory', label: 'Inventario', icon: Package },
     { value: 'drivers', label: 'Repartidores', icon: Users },
     { value: 'stats', label: 'Estadísticas', icon: BarChart3 },
@@ -143,7 +144,7 @@ const Admin = () => {
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Hide TabsList on mobile since we have the horizontal nav */}
-          <TabsList className="hidden lg:grid w-full grid-cols-9">
+          <TabsList className="hidden lg:grid w-full grid-cols-10">
             {navigationItems.map((item) => (
               <TabsTrigger key={item.value} value={item.value} className="flex items-center gap-2">
                 <item.icon className="w-4 h-4" />
@@ -180,6 +181,20 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <MenuManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="composite-dishes" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestión de Platos Compuestos</CardTitle>
+                <CardDescription>
+                  Crea y administra platos con múltiples productos y opciones de personalización
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CompositeDishManagement />
               </CardContent>
             </Card>
           </TabsContent>

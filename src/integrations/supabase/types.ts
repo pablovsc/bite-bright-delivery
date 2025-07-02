@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      composite_dishes: {
+        Row: {
+          base_price: number
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean | null
+          name: string
+          preparation_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name: string
+          preparation_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name?: string
+          preparation_time?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "composite_dishes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_addresses: {
         Row: {
           city: string
@@ -145,6 +192,129 @@ export type Database = {
           vehicle_type?: string | null
         }
         Relationships: []
+      }
+      dish_base_products: {
+        Row: {
+          created_at: string
+          dish_id: string
+          id: string
+          menu_item_id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          dish_id: string
+          id?: string
+          menu_item_id: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          dish_id?: string
+          id?: string
+          menu_item_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dish_base_products_dish_id_fkey"
+            columns: ["dish_id"]
+            isOneToOne: false
+            referencedRelation: "composite_dishes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dish_base_products_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dish_optional_elements: {
+        Row: {
+          additional_price: number | null
+          created_at: string
+          dish_id: string
+          element_type: string | null
+          id: string
+          is_included_by_default: boolean | null
+          menu_item_id: string
+        }
+        Insert: {
+          additional_price?: number | null
+          created_at?: string
+          dish_id: string
+          element_type?: string | null
+          id?: string
+          is_included_by_default?: boolean | null
+          menu_item_id: string
+        }
+        Update: {
+          additional_price?: number | null
+          created_at?: string
+          dish_id?: string
+          element_type?: string | null
+          id?: string
+          is_included_by_default?: boolean | null
+          menu_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dish_optional_elements_dish_id_fkey"
+            columns: ["dish_id"]
+            isOneToOne: false
+            referencedRelation: "composite_dishes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dish_optional_elements_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dish_replacement_options: {
+        Row: {
+          created_at: string
+          id: string
+          optional_element_id: string
+          price_difference: number | null
+          replacement_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          optional_element_id: string
+          price_difference?: number | null
+          replacement_item_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          optional_element_id?: string
+          price_difference?: number | null
+          replacement_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dish_replacement_options_optional_element_id_fkey"
+            columns: ["optional_element_id"]
+            isOneToOne: false
+            referencedRelation: "dish_optional_elements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dish_replacement_options_replacement_item_id_fkey"
+            columns: ["replacement_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       driver_locations: {
         Row: {
@@ -300,6 +470,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      exchange_rates: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          updated_at: string
+          usd_to_ves_rate: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          updated_at?: string
+          usd_to_ves_rate: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          updated_at?: string
+          usd_to_ves_rate?: number
+        }
+        Relationships: []
       }
       inventory: {
         Row: {
@@ -547,8 +741,61 @@ export type Database = {
           },
         ]
       }
+      order_dish_customizations: {
+        Row: {
+          created_at: string
+          id: string
+          is_included: boolean | null
+          optional_element_id: string
+          order_item_id: string
+          price_adjustment: number | null
+          replacement_item_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_included?: boolean | null
+          optional_element_id: string
+          order_item_id: string
+          price_adjustment?: number | null
+          replacement_item_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_included?: boolean | null
+          optional_element_id?: string
+          order_item_id?: string
+          price_adjustment?: number | null
+          replacement_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_dish_customizations_optional_element_id_fkey"
+            columns: ["optional_element_id"]
+            isOneToOne: false
+            referencedRelation: "dish_optional_elements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_dish_customizations_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_dish_customizations_replacement_item_id_fkey"
+            columns: ["replacement_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
+          composite_dish_id: string | null
           created_at: string
           id: string
           menu_item_id: string
@@ -558,6 +805,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          composite_dish_id?: string | null
           created_at?: string
           id?: string
           menu_item_id: string
@@ -567,6 +815,7 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          composite_dish_id?: string | null
           created_at?: string
           id?: string
           menu_item_id?: string
@@ -576,6 +825,13 @@ export type Database = {
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "order_items_composite_dish_id_fkey"
+            columns: ["composite_dish_id"]
+            isOneToOne: false
+            referencedRelation: "composite_dishes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "order_items_menu_item_id_fkey"
             columns: ["menu_item_id"]

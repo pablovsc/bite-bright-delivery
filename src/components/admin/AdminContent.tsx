@@ -12,6 +12,7 @@ import PromotionManagement from '@/components/admin/PromotionManagement';
 import PaymentMethodsManagement from '@/components/admin/PaymentMethodsManagement';
 import PaymentVerificationManagement from '@/components/admin/PaymentVerificationManagement';
 import CompositeDishManagement from '@/components/admin/CompositeDishManagement';
+import TableManagement from '@/components/admin/TableManagement';
 
 interface AdminContentProps {
   activeTab: string;
@@ -70,6 +71,22 @@ const AdminContent = ({ activeTab, setActiveTab }: AdminContentProps) => {
                 </CardHeader>
                 <CardContent className="p-6">
                   <CompositeDishManagement />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tables" className="space-y-6">
+            <div className="max-w-7xl mx-auto">
+              <Card className="shadow-sm">
+                <CardHeader className="border-b border-gray-100">
+                  <CardTitle className="text-xl">Gestión de Mesas</CardTitle>
+                  <CardDescription>
+                    Administra las mesas del restaurante y su estado
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <TableManagement />
                 </CardContent>
               </Card>
             </div>

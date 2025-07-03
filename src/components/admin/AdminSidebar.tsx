@@ -9,7 +9,8 @@ import {
   Gift,
   Grid3X3,
   CreditCard,
-  CheckCircle
+  CheckCircle,
+  Utensils
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -23,6 +24,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
     { value: 'orders', label: 'Pedidos', icon: ShoppingCart },
     { value: 'menu', label: 'Menú', icon: ChefHat },
     { value: 'composite-dishes', label: 'Platos Compuestos', icon: Package },
+    { value: 'tables', label: 'Mesas', icon: Utensils },
     { value: 'inventory', label: 'Inventario', icon: Package },
     { value: 'drivers', label: 'Repartidores', icon: Users },
     { value: 'stats', label: 'Estadísticas', icon: BarChart3 },

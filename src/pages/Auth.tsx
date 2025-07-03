@@ -78,6 +78,7 @@ const Auth = () => {
     { email: 'restaurant@test.com', password: 'restaurant', role: 'Restaurante', color: 'bg-blue-500' },
     { email: 'cliente@test.com', password: 'cliente', role: 'Cliente', color: 'bg-orange-500' },
     { email: 'delivery@test.com', password: 'delivery', role: 'Repartidor', color: 'bg-green-500' },
+    { email: 'mesero@test.com', password: 'mesero', role: 'Mesero', color: 'bg-purple-500' },
   ];
 
   return (

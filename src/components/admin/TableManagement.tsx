@@ -10,16 +10,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Plus, Edit, Trash2, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Tables } from '@/integrations/supabase/types';
 
-interface RestaurantTable {
-  id: string;
-  table_number: string;
-  capacity: number;
-  status: 'available' | 'occupied' | 'cleaning';
-  zone?: string;
-  created_at: string;
-  updated_at: string;
-}
+type RestaurantTable = Tables<'restaurant_tables'>;
 
 const TableManagement = () => {
   const [tables, setTables] = useState<RestaurantTable[]>([]);
@@ -48,12 +41,12 @@ const TableManagement = () => {
   const fetchTables = async () => {
     try {
       const { data, error } = await supabase
-        .from('restaurant_tables' as any)
+        .from('restaurant_tables')
         .select('*')
         .order('table_number');
 
       if (error) throw error;
-      setTables((data as RestaurantTable[]) || []);
+      setTables(data || []);
     } catch (error) {
       console.error('Error fetching tables:', error);
       toast.error('Error al cargar las mesas');
@@ -89,7 +82,7 @@ const TableManagement = () => {
   const handleCreate = async () => {
     try {
       const { error } = await supabase
-        .from('restaurant_tables' as any)
+        .from('restaurant_tables')
         .insert([
           {
             table_number: formData.table_number,
@@ -116,7 +109,7 @@ const TableManagement = () => {
 
     try {
       const { error } = await supabase
-        .from('restaurant_tables' as any)
+        .from('restaurant_tables')
         .update({
           table_number: formData.table_number,
           capacity: formData.capacity,
@@ -142,7 +135,7 @@ const TableManagement = () => {
 
     try {
       const { error } = await supabase
-        .from('restaurant_tables' as any)
+        .from('restaurant_tables')
         .delete()
         .eq('id', id);
 
@@ -159,7 +152,7 @@ const TableManagement = () => {
   const handleStatusChange = async (id: string, newStatus: 'available' | 'occupied' | 'cleaning') => {
     try {
       const { error } = await supabase
-        .from('restaurant_tables' as any)
+        .from('restaurant_tables')
         .update({ status: newStatus })
         .eq('id', id);
 
@@ -283,8 +276,8 @@ const TableManagement = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Estado:</span>
-                  <Badge className={statusColors[table.status]}>
-                    {statusLabels[table.status]}
+                  <Badge className={statusColors[table.status as keyof typeof statusColors]}>
+                    {statusLabels[table.status as keyof typeof statusLabels]}
                   </Badge>
                 </div>
                 

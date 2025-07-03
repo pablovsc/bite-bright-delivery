@@ -1088,6 +1088,36 @@ export type Database = {
         }
         Relationships: []
       }
+      restaurant_tables: {
+        Row: {
+          capacity: number
+          created_at: string
+          id: string
+          status: string
+          table_number: string
+          updated_at: string
+          zone: string | null
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          status?: string
+          table_number: string
+          updated_at?: string
+          zone?: string | null
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          status?: string
+          table_number?: string
+          updated_at?: string
+          zone?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1138,7 +1168,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "restaurant" | "cliente" | "delivery"
+      app_role: "restaurant" | "cliente" | "delivery" | "mesero"
       order_status:
         | "pending"
         | "confirmed"
@@ -1261,7 +1291,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["restaurant", "cliente", "delivery"],
+      app_role: ["restaurant", "cliente", "delivery", "mesero"],
       order_status: [
         "pending",
         "confirmed",

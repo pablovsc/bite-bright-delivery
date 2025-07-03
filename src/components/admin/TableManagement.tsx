@@ -48,12 +48,12 @@ const TableManagement = () => {
   const fetchTables = async () => {
     try {
       const { data, error } = await supabase
-        .from('restaurant_tables')
+        .from('restaurant_tables' as any)
         .select('*')
         .order('table_number');
 
       if (error) throw error;
-      setTables(data || []);
+      setTables((data as RestaurantTable[]) || []);
     } catch (error) {
       console.error('Error fetching tables:', error);
       toast.error('Error al cargar las mesas');
@@ -89,7 +89,7 @@ const TableManagement = () => {
   const handleCreate = async () => {
     try {
       const { error } = await supabase
-        .from('restaurant_tables')
+        .from('restaurant_tables' as any)
         .insert([
           {
             table_number: formData.table_number,
@@ -116,7 +116,7 @@ const TableManagement = () => {
 
     try {
       const { error } = await supabase
-        .from('restaurant_tables')
+        .from('restaurant_tables' as any)
         .update({
           table_number: formData.table_number,
           capacity: formData.capacity,
@@ -142,7 +142,7 @@ const TableManagement = () => {
 
     try {
       const { error } = await supabase
-        .from('restaurant_tables')
+        .from('restaurant_tables' as any)
         .delete()
         .eq('id', id);
 
@@ -159,7 +159,7 @@ const TableManagement = () => {
   const handleStatusChange = async (id: string, newStatus: 'available' | 'occupied' | 'cleaning') => {
     try {
       const { error } = await supabase
-        .from('restaurant_tables')
+        .from('restaurant_tables' as any)
         .update({ status: newStatus })
         .eq('id', id);
 

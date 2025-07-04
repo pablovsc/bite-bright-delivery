@@ -62,7 +62,7 @@ export const Cart = () => {
         setSelectedTable(null);
         setShowTableSelector(false);
       } else {
-        // Regular customer flow - removed order_type field
+        // Regular customer flow
         const deliveryFee = 3.50;
         const finalTotal = totalPrice + deliveryFee;
 
@@ -72,7 +72,8 @@ export const Cart = () => {
             user_id: user.id,
             total_amount: finalTotal,
             delivery_fee: deliveryFee,
-            status: 'pending'
+            status: 'pending',
+            order_type: 'delivery'
           })
           .select()
           .single();

@@ -58,6 +58,10 @@ export const useCreateWaiterOrder = () => {
         throw new Error('User not authenticated');
       }
 
+      console.log('Creating waiter order with items:', items);
+      console.log('Table ID:', tableId);
+      console.log('Total amount:', totalAmount);
+
       // Create the order - using existing schema with user_id
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -71,22 +75,53 @@ export const useCreateWaiterOrder = () => {
         .select()
         .single();
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error('Error creating order:', orderError);
+        throw orderError;
+      }
 
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        menu_item_id: item.id,
-        quantity: item.quantity,
-        unit_price: item.price,
-        total_price: item.price * item.quantity
-      }));
+      console.log('Order created:', order);
+
+      // Get the actual menu item IDs by matching with names
+      // This is necessary because cart items might have generated IDs
+      const { data: menuItems, error: menuError } = await supabase
+        .from('menu_items')
+        .select('id, name')
+        .in('name', items.map(item => item.name));
+
+      if (menuError) {
+        console.error('Error fetching menu items:', menuError);
+        throw menuError;
+      }
+
+      console.log('Fetched menu items:', menuItems);
+
+      // Create order items with correct menu_item_id
+      const orderItems = items.map(item => {
+        const menuItem = menuItems?.find(mi => mi.name === item.name);
+        if (!menuItem) {
+          throw new Error(`Menu item not found: ${item.name}`);
+        }
+        
+        return {
+          order_id: order.id,
+          menu_item_id: menuItem.id, // Use the actual menu item ID from database
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity
+        };
+      });
+
+      console.log('Order items to insert:', orderItems);
 
       const { error: itemsError } = await supabase
         .from('order_items')
         .insert(orderItems);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error('Error creating order items:', itemsError);
+        throw itemsError;
+      }
 
       return order;
     },

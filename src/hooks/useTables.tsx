@@ -82,30 +82,53 @@ export const useCreateWaiterOrder = () => {
 
       console.log('Order created:', order);
 
-      // Get the actual menu item IDs by matching with names
-      // This is necessary because cart items might have generated IDs
+      // Get both regular menu items and composite dishes by name
+      const itemNames = items.map(item => item.name);
+      
+      // Fetch regular menu items
       const { data: menuItems, error: menuError } = await supabase
         .from('menu_items')
         .select('id, name')
-        .in('name', items.map(item => item.name));
+        .in('name', itemNames);
 
       if (menuError) {
         console.error('Error fetching menu items:', menuError);
         throw menuError;
       }
 
-      console.log('Fetched menu items:', menuItems);
+      // Fetch composite dishes
+      const { data: compositeDishes, error: compositeError } = await supabase
+        .from('composite_dishes')
+        .select('id, name')
+        .in('name', itemNames);
 
-      // Create order items with correct menu_item_id
+      if (compositeError) {
+        console.error('Error fetching composite dishes:', compositeError);
+        throw compositeError;
+      }
+
+      console.log('Fetched menu items:', menuItems);
+      console.log('Fetched composite dishes:', compositeDishes);
+
+      // Create order items with correct IDs
       const orderItems = items.map(item => {
-        const menuItem = menuItems?.find(mi => mi.name === item.name);
+        // First try to find in regular menu items
+        let menuItem = menuItems?.find(mi => mi.name === item.name);
+        let compositeDish = null;
+        
+        // If not found in menu items, try composite dishes
         if (!menuItem) {
-          throw new Error(`Menu item not found: ${item.name}`);
+          compositeDish = compositeDishes?.find(cd => cd.name === item.name);
         }
         
+        if (!menuItem && !compositeDish) {
+          throw new Error(`Item not found: ${item.name}`);
+        }
+
         return {
           order_id: order.id,
-          menu_item_id: menuItem.id, // Use the actual menu item ID from database
+          menu_item_id: menuItem?.id || compositeDish?.id, // Use the actual ID from database
+          composite_dish_id: compositeDish?.id || null, // Set composite dish ID if applicable
           quantity: item.quantity,
           unit_price: item.price,
           total_price: item.price * item.quantity

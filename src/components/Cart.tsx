@@ -78,20 +78,105 @@ export const Cart = () => {
 
         if (orderError) throw orderError;
 
-        // Create order items
-        const orderItems = items.map(item => ({
-          order_id: order.id,
-          menu_item_id: item.id,
-          quantity: item.quantity,
-          unit_price: item.price,
-          total_price: item.price * item.quantity
-        }));
+        // Create order items using the same logic as waiter orders
+        const createOrderItem = async (item: any) => {
+          // Check if it's a customized composite dish (has timestamp in ID)
+          const isCustomizedDish = item.id.includes('-') && item.id.split('-').length > 5;
+          
+          if (isCustomizedDish) {
+            // Extract original dish ID (all parts except the last timestamp part)
+            const idParts = item.id.split('-');
+            const originalDishId = idParts.slice(0, -1).join('-');
+            
+            // Try to find as composite dish first
+            const { data: compositeDish, error: compositeError } = await supabase
+              .from('composite_dishes')
+              .select('id, name')
+              .eq('id', originalDishId)
+              .single();
+            
+            if (!compositeError && compositeDish) {
+              const { error: itemError } = await supabase
+                .from('order_items')
+                .insert({
+                  order_id: order.id,
+                  menu_item_id: null,
+                  composite_dish_id: compositeDish.id,
+                  quantity: item.quantity,
+                  unit_price: item.price,
+                  total_price: item.price * item.quantity
+                });
+              
+              if (itemError) throw itemError;
+              return;
+            }
+            
+            // Fall back to regular menu item
+            const { data: menuItem, error: menuError } = await supabase
+              .from('menu_items')
+              .select('id, name')
+              .eq('id', originalDishId)
+              .single();
+            
+            if (menuError) throw new Error(`Item no encontrado: ${item.name}`);
+            
+            const { error: itemError } = await supabase
+              .from('order_items')
+              .insert({
+                order_id: order.id,
+                menu_item_id: menuItem.id,
+                composite_dish_id: null,
+                quantity: item.quantity,
+                unit_price: item.price,
+                total_price: item.price * item.quantity
+              });
+            
+            if (itemError) throw itemError;
+            return;
+          }
+          
+          // Regular item - try composite first, then menu items
+          const { data: compositeDish, error: compositeError } = await supabase
+            .from('composite_dishes')
+            .select('id, name')
+            .eq('id', item.id)
+            .single();
+          
+          if (!compositeError && compositeDish) {
+            const { error: itemError } = await supabase
+              .from('order_items')
+              .insert({
+                order_id: order.id,
+                menu_item_id: null,
+                composite_dish_id: compositeDish.id,
+                quantity: item.quantity,
+                unit_price: item.price,
+                total_price: item.price * item.quantity
+              });
+            
+            if (itemError) throw itemError;
+            return;
+          }
+          
+          // Regular menu item
+          const { error: itemError } = await supabase
+            .from('order_items')
+            .insert({
+              order_id: order.id,
+              menu_item_id: item.id,
+              composite_dish_id: null,
+              quantity: item.quantity,
+              unit_price: item.price,
+              total_price: item.price * item.quantity
+            });
+          
+          if (itemError) throw itemError;
+        };
 
-        const { error: itemsError } = await supabase
-          .from('order_items')
-          .insert(orderItems);
-
-        if (itemsError) throw itemsError;
+        // Process each item
+        for (const item of items) {
+          await createOrderItem(item);
+        }
 
         toast.success('¡Pedido realizado exitosamente!');
         clearCart();
@@ -101,7 +186,8 @@ export const Cart = () => {
       }
     } catch (error) {
       console.error('Error placing order:', error);
-      toast.error('Error al realizar el pedido. Inténtalo de nuevo.');
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      toast.error(`Error al realizar el pedido: ${errorMessage}`);
     } finally {
       setIsPlacingOrder(false);
     }

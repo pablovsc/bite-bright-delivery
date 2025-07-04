@@ -39,6 +39,159 @@ export const useTables = () => {
   });
 };
 
+const validateOrderItem = (item: any) => {
+  if (!item.id || !item.name || !item.price || !item.quantity) {
+    throw new Error(`Item inválido: falta información requerida`);
+  }
+  if (item.quantity <= 0) {
+    throw new Error(`Cantidad inválida para ${item.name}`);
+  }
+  if (item.price <= 0) {
+    throw new Error(`Precio inválido para ${item.name}`);
+  }
+};
+
+const createOrderItem = async (orderId: string, item: any) => {
+  console.log('Creating order item for:', item);
+  
+  // Validar el item antes de procesarlo
+  validateOrderItem(item);
+  
+  // Check if it's a customized composite dish (has timestamp in ID)
+  const isCustomizedDish = item.id.includes('-') && item.id.split('-').length > 5;
+  
+  if (isCustomizedDish) {
+    // Extract original dish ID (all parts except the last timestamp part)
+    const idParts = item.id.split('-');
+    const originalDishId = idParts.slice(0, -1).join('-');
+    console.log('Processing customized composite dish, original ID:', originalDishId);
+    
+    // Try to find as composite dish first
+    const { data: compositeDish, error: compositeError } = await supabase
+      .from('composite_dishes')
+      .select('id, name')
+      .eq('id', originalDishId)
+      .single();
+    
+    if (!compositeError && compositeDish) {
+      console.log('Found composite dish:', compositeDish);
+      // Create order item for composite dish
+      const { error: itemError } = await supabase
+        .from('order_items')
+        .insert({
+          order_id: orderId,
+          menu_item_id: null,
+          composite_dish_id: compositeDish.id,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity
+        });
+      
+      if (itemError) {
+        console.error('Error creating composite dish order item:', itemError);
+        throw itemError;
+      }
+      console.log('Successfully created composite dish order item');
+      return;
+    }
+    
+    // If not found as composite dish, try as regular menu item
+    console.log('Not found as composite dish, trying as regular menu item with original ID');
+    const { data: menuItem, error: menuError } = await supabase
+      .from('menu_items')
+      .select('id, name')
+      .eq('id', originalDishId)
+      .single();
+    
+    if (menuError) {
+      console.error('Menu item not found with original ID:', menuError);
+      throw new Error(`Item no encontrado: ${item.name}`);
+    }
+    
+    // Create order item for regular menu item
+    const { error: itemError } = await supabase
+      .from('order_items')
+      .insert({
+        order_id: orderId,
+        menu_item_id: menuItem.id,
+        composite_dish_id: null,
+        quantity: item.quantity,
+        unit_price: item.price,
+        total_price: item.price * item.quantity
+      });
+    
+    if (itemError) {
+      console.error('Error creating regular menu item order item:', itemError);
+      throw itemError;
+    }
+    console.log('Successfully created regular menu item order item');
+    return;
+  }
+  
+  // Regular item processing - first try composite dishes, then menu items
+  console.log('Processing regular item:', item.name);
+  
+  // First try to find in composite dishes by ID
+  const { data: compositeDish, error: compositeError } = await supabase
+    .from('composite_dishes')
+    .select('id, name')
+    .eq('id', item.id)
+    .single();
+  
+  if (!compositeError && compositeDish) {
+    console.log('Found composite dish:', compositeDish);
+    // Create order item for composite dish
+    const { error: itemError } = await supabase
+      .from('order_items')
+      .insert({
+        order_id: orderId,
+        menu_item_id: null,
+        composite_dish_id: compositeDish.id,
+        quantity: item.quantity,
+        unit_price: item.price,
+        total_price: item.price * item.quantity
+      });
+    
+    if (itemError) {
+      console.error('Error creating composite dish order item:', itemError);
+      throw itemError;
+    }
+    console.log('Successfully created composite dish order item');
+    return;
+  }
+  
+  // Try to find in regular menu items by ID
+  const { data: menuItem, error: menuError } = await supabase
+    .from('menu_items')
+    .select('id, name')
+    .eq('id', item.id)
+    .single();
+  
+  if (menuError) {
+    console.error('Menu item not found by ID:', menuError);
+    throw new Error(`Item no encontrado: ${item.name}`);
+  }
+  
+  console.log('Found regular menu item:', menuItem);
+  // Create order item for regular menu item
+  const { error: itemError } = await supabase
+    .from('order_items')
+    .insert({
+      order_id: orderId,
+      menu_item_id: menuItem.id,
+      composite_dish_id: null,
+      quantity: item.quantity,
+      unit_price: item.price,
+      total_price: item.price * item.quantity
+    });
+  
+  if (itemError) {
+    console.error('Error creating regular menu item order item:', itemError);
+    throw itemError;
+  }
+  console.log('Successfully created regular menu item order item');
+};
+
 export const useCreateWaiterOrder = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -55,21 +208,25 @@ export const useCreateWaiterOrder = () => {
       totalAmount: number 
     }) => {
       if (!user) {
-        throw new Error('User not authenticated');
+        throw new Error('Usuario no autenticado');
       }
 
       console.log('Creating waiter order with items:', items);
       console.log('Table ID:', tableId);
       console.log('Total amount:', totalAmount);
 
-      // Create the order - using existing schema with user_id
+      // Validar que hay items en el pedido
+      if (!items || items.length === 0) {
+        throw new Error('No hay items en el pedido');
+      }
+
+      // Create the order
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
           user_id: user.id,
           total_amount: totalAmount,
           status: 'pending',
-          // Note: We'll store table info in notes since table_id doesn't exist
           notes: `Mesa: ${tableId}`
         })
         .select()
@@ -82,70 +239,12 @@ export const useCreateWaiterOrder = () => {
 
       console.log('Order created:', order);
 
-      // Get both regular menu items and composite dishes by name
-      const itemNames = items.map(item => item.name);
-      
-      // Fetch regular menu items
-      const { data: menuItems, error: menuError } = await supabase
-        .from('menu_items')
-        .select('id, name')
-        .in('name', itemNames);
-
-      if (menuError) {
-        console.error('Error fetching menu items:', menuError);
-        throw menuError;
+      // Process each item individually using the helper function
+      for (const item of items) {
+        await createOrderItem(order.id, item);
       }
 
-      // Fetch composite dishes
-      const { data: compositeDishes, error: compositeError } = await supabase
-        .from('composite_dishes')
-        .select('id, name')
-        .in('name', itemNames);
-
-      if (compositeError) {
-        console.error('Error fetching composite dishes:', compositeError);
-        throw compositeError;
-      }
-
-      console.log('Fetched menu items:', menuItems);
-      console.log('Fetched composite dishes:', compositeDishes);
-
-      // Create order items with correct IDs
-      const orderItems = items.map(item => {
-        // First try to find in regular menu items
-        let menuItem = menuItems?.find(mi => mi.name === item.name);
-        let compositeDish = null;
-        
-        // If not found in menu items, try composite dishes
-        if (!menuItem) {
-          compositeDish = compositeDishes?.find(cd => cd.name === item.name);
-        }
-        
-        if (!menuItem && !compositeDish) {
-          throw new Error(`Item not found: ${item.name}`);
-        }
-
-        return {
-          order_id: order.id,
-          menu_item_id: menuItem?.id || compositeDish?.id, // Use the actual ID from database
-          composite_dish_id: compositeDish?.id || null, // Set composite dish ID if applicable
-          quantity: item.quantity,
-          unit_price: item.price,
-          total_price: item.price * item.quantity
-        };
-      });
-
-      console.log('Order items to insert:', orderItems);
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) {
-        console.error('Error creating order items:', itemsError);
-        throw itemsError;
-      }
-
+      console.log('Order creation completed successfully');
       return order;
     },
     onSuccess: () => {
@@ -160,7 +259,7 @@ export const useCreateWaiterOrder = () => {
       console.error('Error creating waiter order:', error);
       toast({
         title: "Error",
-        description: "No se pudo crear el pedido",
+        description: `No se pudo crear el pedido: ${error.message}`,
         variant: "destructive",
       });
     }

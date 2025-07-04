@@ -1,4 +1,3 @@
-
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 
 export const statusColors: Record<OrderStatus, string> = {
@@ -55,7 +54,8 @@ export interface Order {
 export interface OrderItem {
   id: string;
   order_id: string;
-  menu_item_id: string;
+  menu_item_id: string | null;
+  composite_dish_id: string | null;
   quantity: number;
   unit_price: number;
   total_price: number;
@@ -64,6 +64,11 @@ export interface OrderItem {
   menu_items?: {
     name: string;
     price: number;
+  };
+  
+  composite_dishes?: {
+    name: string;
+    base_price: number;
   };
 }
 

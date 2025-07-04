@@ -93,7 +93,11 @@ export interface DriverOrder {
     quantity: number;
     unit_price: number;
     total_price: number;
+    composite_dish_id?: string | null;
     menu_items?: {
+      name: string;
+    };
+    composite_dishes?: {
       name: string;
     };
   }>;

@@ -42,7 +42,7 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
     
     // Calculate initial total price
     const optionalPrice = initialCustomizations.reduce((sum, custom) => 
-      sum + (custom.isIncluded ? custom.priceAdjustment : 0), 0
+      sum + custom.priceAdjustment, 0
     );
     setTotalPrice(dish.base_price + optionalPrice);
   }, [dish]);
@@ -77,11 +77,15 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
       const updated = prev.map(custom => {
         if (custom.elementId === elementId) {
           const priceDifference = replacementItem.price - originalElement.menu_items.price;
+          // Only add the additional price if the element is included by default
+          // Plus the price difference for the replacement
+          const newPriceAdjustment = originalElement.additional_price + priceDifference;
+          
           return {
             ...custom,
             isIncluded: true,
             replacementItemId: replacementItem.id,
-            priceAdjustment: originalElement.additional_price + priceDifference
+            priceAdjustment: newPriceAdjustment
           };
         }
         return custom;
@@ -259,7 +263,12 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
                                 </div>
                                 <div className="text-right">
                                   <div className="font-semibold">
-                                    {customization?.priceAdjustment ? `+$${customization.priceAdjustment.toFixed(2)}` : 'Gratis'}
+                                    {customization?.priceAdjustment && customization.priceAdjustment > 0 ? 
+                                      `+$${customization.priceAdjustment.toFixed(2)}` : 
+                                      customization?.priceAdjustment && customization.priceAdjustment < 0 ?
+                                      `$${customization.priceAdjustment.toFixed(2)}` :
+                                      'Gratis'
+                                    }
                                   </div>
                                 </div>
                               </div>
@@ -313,7 +322,7 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
                 <span>${dish.base_price.toFixed(2)}</span>
               </div>
               
-              {customizations.filter(c => c.isIncluded && c.priceAdjustment > 0).map((custom) => {
+              {customizations.filter(c => c.isIncluded && c.priceAdjustment !== 0).map((custom) => {
                 const element = dish.dish_optional_elements?.find(e => e.id === custom.elementId);
                 const replacementItem = getReplacementItem(custom.elementId);
                 
@@ -322,7 +331,9 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
                     <span>
                       {replacementItem ? replacementItem.name : element?.menu_items.name}
                     </span>
-                    <span>+${custom.priceAdjustment.toFixed(2)}</span>
+                    <span className={custom.priceAdjustment > 0 ? 'text-orange-600' : 'text-green-600'}>
+                      {custom.priceAdjustment > 0 ? '+' : ''}${custom.priceAdjustment.toFixed(2)}
+                    </span>
                   </div>
                 );
               })}

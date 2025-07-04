@@ -1,19 +1,28 @@
+
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
+import { useWaiterContext } from '@/hooks/useWaiterContext';
 import { ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useCreateWaiterOrder } from '@/hooks/useTables';
+import TableSelector from '@/components/TableSelector';
 
 export const Cart = () => {
   const { items, updateQuantity, removeItem, clearCart, totalItems, totalPrice } = useCart();
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
+  const { selectedTable, setSelectedTable } = useWaiterContext();
   const navigate = useNavigate();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [showTableSelector, setShowTableSelector] = useState(false);
+  const createWaiterOrder = useCreateWaiterOrder();
+
+  const isWaiter = userRole === 'mesero';
 
   const handlePlaceOrder = async () => {
     if (!user) {
@@ -26,46 +35,72 @@ export const Cart = () => {
       return;
     }
 
+    // For waiters, check if table is selected
+    if (isWaiter && !selectedTable) {
+      setShowTableSelector(true);
+      toast.error('Debes seleccionar una mesa antes de realizar el pedido');
+      return;
+    }
+
     setIsPlacingOrder(true);
 
     try {
-      // Create the order
-      const deliveryFee = 3.50;
-      const finalTotal = totalPrice + deliveryFee;
+      if (isWaiter && selectedTable) {
+        // Waiter flow - create table order
+        await createWaiterOrder.mutateAsync({
+          items: items.map(item => ({
+            id: item.id,
+            quantity: item.quantity,
+            price: item.price,
+            name: item.name
+          })),
+          tableId: selectedTable.id,
+          totalAmount: totalPrice
+        });
 
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          total_amount: finalTotal,
-          delivery_fee: deliveryFee,
-          status: 'pending'
-        })
-        .select()
-        .single();
+        clearCart();
+        setSelectedTable(null);
+        setShowTableSelector(false);
+      } else {
+        // Regular customer flow
+        const deliveryFee = 3.50;
+        const finalTotal = totalPrice + deliveryFee;
 
-      if (orderError) throw orderError;
+        const { data: order, error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            user_id: user.id,
+            total_amount: finalTotal,
+            delivery_fee: deliveryFee,
+            status: 'pending',
+            order_type: 'delivery'
+          })
+          .select()
+          .single();
 
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        menu_item_id: item.id,
-        quantity: item.quantity,
-        unit_price: item.price,
-        total_price: item.price * item.quantity
-      }));
+        if (orderError) throw orderError;
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+        // Create order items
+        const orderItems = items.map(item => ({
+          order_id: order.id,
+          menu_item_id: item.id,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity
+        }));
 
-      if (itemsError) throw itemsError;
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(orderItems);
 
-      toast.success('¡Pedido realizado exitosamente!');
-      clearCart();
-      
-      // Redirect to payment page
-      navigate(`/payment/${order.id}`);
+        if (itemsError) throw itemsError;
+
+        toast.success('¡Pedido realizado exitosamente!');
+        clearCart();
+        
+        // Redirect to payment page
+        navigate(`/payment/${order.id}`);
+      }
     } catch (error) {
       console.error('Error placing order:', error);
       toast.error('Error al realizar el pedido. Inténtalo de nuevo.');
@@ -134,27 +169,70 @@ export const Cart = () => {
                 </div>
               ))}
               
+              {/* Table selector for waiters */}
+              {isWaiter && showTableSelector && (
+                <div className="border-t pt-4">
+                  <TableSelector
+                    selectedTableId={selectedTable?.id}
+                    onTableSelect={(table) => {
+                      setSelectedTable(table);
+                      setShowTableSelector(false);
+                    }}
+                  />
+                </div>
+              )}
+              
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
                   <span>${totalPrice.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Envío:</span>
-                  <span>$3.50</span>
-                </div>
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total:</span>
-                  <span>${(totalPrice + 3.50).toFixed(2)}</span>
-                </div>
+                
+                {!isWaiter && (
+                  <>
+                    <div className="flex justify-between">
+                      <span>Envío:</span>
+                      <span>$3.50</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>${(totalPrice + 3.50).toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+                
+                {isWaiter && (
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total:</span>
+                    <span>${totalPrice.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
+              
+              {/* Show selected table for waiters */}
+              {isWaiter && selectedTable && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">
+                    Mesa seleccionada: <strong>Mesa {selectedTable.table_number}</strong>
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => setShowTableSelector(true)}
+                  >
+                    Cambiar mesa
+                  </Button>
+                </div>
+              )}
               
               <Button 
                 onClick={handlePlaceOrder}
                 className="w-full bg-orange-600 hover:bg-orange-700"
                 disabled={isPlacingOrder || !user}
               >
-                {isPlacingOrder ? 'Procesando...' : 'Realizar Pedido'}
+                {isPlacingOrder ? 'Procesando...' : 
+                  isWaiter ? 'Enviar a Cocina' : 'Realizar Pedido'}
               </Button>
               
               {!user && (

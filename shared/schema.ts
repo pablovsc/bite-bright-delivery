@@ -20,7 +20,7 @@ export const appRoleEnum = pgEnum('app_role', ['restaurant', 'cliente', 'deliver
 
 // Tables
 export const profiles = pgTable("profiles", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   email: text("email"),
   full_name: text("full_name"),
   phone: text("phone"),
@@ -28,6 +28,7 @@ export const profiles = pgTable("profiles", {
   address: text("address"),
   city: text("city"),
   postal_code: text("postal_code"),
+  password_hash: text("password_hash"),
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

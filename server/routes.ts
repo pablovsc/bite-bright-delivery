@@ -1,8 +1,113 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+
+// Auth validation schemas
+const signUpSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+  fullName: z.string().min(1)
+});
+
+const signInSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1)
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth routes
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { email, password, fullName } = signUpSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getProfileByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "El usuario ya existe" });
+      }
+      
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      // Create user profile
+      const profile = await storage.createProfile({
+        email,
+        full_name: fullName,
+        password_hash: hashedPassword,
+        phone: null,
+        avatar_url: null,
+        address: null,
+        city: null,
+        postal_code: null
+      });
+      
+      // Generate JWT token
+      const token = jwt.sign(
+        { userId: profile.id, email: profile.email },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      
+      res.status(201).json({
+        user: {
+          id: profile.id,
+          email: profile.email,
+          full_name: profile.full_name
+        },
+        token
+      });
+    } catch (error) {
+      console.error("Error en registro:", error);
+      res.status(500).json({ error: "Error al crear usuario" });
+    }
+  });
+
+  app.post("/api/auth/signin", async (req, res) => {
+    try {
+      const { email, password } = signInSchema.parse(req.body);
+      
+      // Find user
+      const profile = await storage.getProfileByEmail(email);
+      if (!profile) {
+        return res.status(401).json({ error: "Credenciales inválidas" });
+      }
+      
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, profile.password_hash || '');
+      if (!isValidPassword) {
+        return res.status(401).json({ error: "Credenciales inválidas" });
+      }
+      
+      // Generate JWT token
+      const token = jwt.sign(
+        { userId: profile.id, email: profile.email },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      
+      res.json({
+        user: {
+          id: profile.id,
+          email: profile.email,
+          full_name: profile.full_name
+        },
+        token
+      });
+    } catch (error) {
+      console.error("Error en inicio de sesión:", error);
+      res.status(500).json({ error: "Error al iniciar sesión" });
+    }
+  });
+
+  app.post("/api/auth/signout", (req, res) => {
+    res.json({ message: "Sesión cerrada exitosamente" });
+  });
+
   // Menu API routes
   app.get("/api/menu/categories", async (req, res) => {
     try {

@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -72,8 +71,7 @@ export const Cart = () => {
             user_id: user.id,
             total_amount: finalTotal,
             delivery_fee: deliveryFee,
-            status: 'pending',
-            order_type: 'delivery'
+            status: 'pending'
           })
           .select()
           .single();

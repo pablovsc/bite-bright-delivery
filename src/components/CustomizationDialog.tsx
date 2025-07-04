@@ -34,16 +34,15 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
     // Initialize customizations with default values
     const initialCustomizations = dish.dish_optional_elements?.map(element => ({
       elementId: element.id,
-      isIncluded: Boolean(element.is_included_by_default),
-      priceAdjustment: element.is_included_by_default ? 
-        (element.additional_price ? parseFloat(String(element.additional_price)) : 0) : 0
+      isIncluded: element.is_included_by_default,
+      priceAdjustment: element.is_included_by_default ? element.additional_price : 0
     })) || [];
     
     setCustomizations(initialCustomizations);
     
     // Calculate initial total price
     const optionalPrice = initialCustomizations.reduce((sum, custom) => 
-      sum + (custom.priceAdjustment || 0), 0
+      sum + custom.priceAdjustment, 0
     );
     setTotalPrice(dish.base_price + optionalPrice);
   }, [dish]);
@@ -53,13 +52,11 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
       const updated = prev.map(custom => {
         if (custom.elementId === elementId) {
           const newIsIncluded = !custom.isIncluded;
-          // Convert the decimal string to number properly
-          const additionalPrice = element.additional_price ? parseFloat(String(element.additional_price)) : 0;
           return {
             ...custom,
             isIncluded: newIsIncluded,
             replacementItemId: undefined, // Reset replacement when toggling
-            priceAdjustment: newIsIncluded ? additionalPrice : 0
+            priceAdjustment: newIsIncluded ? element.additional_price : 0
           };
         }
         return custom;
@@ -79,18 +76,10 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
     setCustomizations(prev => {
       const updated = prev.map(custom => {
         if (custom.elementId === elementId) {
-          // Get the base additional price for the original element
-          const baseAdditionalPrice = originalElement.additional_price ? parseFloat(String(originalElement.additional_price)) : 0;
-          
-          // Find the replacement option to get the correct price difference
-          const replacementOption = originalElement.dish_replacement_options?.find(
-            (option: any) => option.replacement_menu_items.id === replacementItem.id
-          );
-          
-          const priceDifference = replacementOption?.price_difference ? parseFloat(String(replacementOption.price_difference)) : 0;
-          
-          // The new price adjustment is the base price plus the replacement price difference
-          const newPriceAdjustment = baseAdditionalPrice + priceDifference;
+          const priceDifference = replacementItem.price - originalElement.menu_items.price;
+          // Only add the additional price if the element is included by default
+          // Plus the price difference for the replacement
+          const newPriceAdjustment = originalElement.additional_price + priceDifference;
           
           return {
             ...custom,
@@ -120,7 +109,7 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
             ...custom,
             isIncluded: true,
             replacementItemId: undefined,
-            priceAdjustment: originalElement.additional_price ? parseFloat(String(originalElement.additional_price)) : 0
+            priceAdjustment: originalElement.additional_price
           };
         }
         return custom;
@@ -182,7 +171,7 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
   }, {} as Record<string, typeof dish.dish_optional_elements>) || {};
 
   const getTypeLabel = (type: string) => {
-    const labels: { [key: string]: string } = {
+    const labels = {
       drink: '🥤 Bebidas',
       side: '🍟 Acompañamientos',
       bread: '🍞 Pan',
@@ -301,13 +290,9 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
                                       >
                                         <div className="flex justify-between items-center">
                                           <span>{option.replacement_menu_items.name}</span>
-                                          <span className={
-                                            option.price_difference != null && option.price_difference > 0 ? 'text-orange-600' : 
-                                            option.price_difference != null && option.price_difference < 0 ? 'text-green-600' : 
-                                            'text-gray-600'
-                                          }>
-                                            {option.price_difference != null && option.price_difference > 0 ? `+$${option.price_difference.toFixed(2)}` : 
-                                             option.price_difference != null && option.price_difference < 0 ? `-$${Math.abs(option.price_difference).toFixed(2)}` : 'Sin costo'}
+                                          <span className={option.price_difference > 0 ? 'text-orange-600' : option.price_difference < 0 ? 'text-green-600' : 'text-gray-600'}>
+                                            {option.price_difference > 0 ? `+$${option.price_difference.toFixed(2)}` : 
+                                             option.price_difference < 0 ? `-$${Math.abs(option.price_difference).toFixed(2)}` : 'Sin costo'}
                                           </span>
                                         </div>
                                       </button>

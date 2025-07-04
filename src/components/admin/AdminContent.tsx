@@ -13,7 +13,6 @@ import PaymentMethodsManagement from '@/components/admin/PaymentMethodsManagemen
 import PaymentVerificationManagement from '@/components/admin/PaymentVerificationManagement';
 import CompositeDishManagement from '@/components/admin/CompositeDishManagement';
 import TableManagement from '@/components/admin/TableManagement';
-import UserManagement from '@/components/admin/UserManagement';
 
 interface AdminContentProps {
   activeTab: string;
@@ -120,22 +119,6 @@ const AdminContent = ({ activeTab, setActiveTab }: AdminContentProps) => {
                 </CardHeader>
                 <CardContent className="p-6">
                   <DriverManagement />
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="users" className="space-y-6">
-            <div className="max-w-7xl mx-auto">
-              <Card className="shadow-sm">
-                <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="text-xl">Gestión de Usuarios</CardTitle>
-                  <CardDescription>
-                    Administra todos los usuarios registrados en el sistema
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <UserManagement />
                 </CardContent>
               </Card>
             </div>

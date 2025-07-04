@@ -1,7 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, User, Settings, LogOut, Menu, Utensils } from 'lucide-react';
+import { ShoppingCart, User, Settings, LogOut, Menu } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 import PublicMenu from '@/components/PublicMenu';
 import { Cart } from '@/components/Cart';
@@ -186,22 +186,6 @@ const Index = () => {
                       <ShoppingCart className="h-4 w-4 text-orange-600" />
                       <span className="text-sm text-gray-600">
                         Revisa nuestro menú completo más abajo
-                      </span>
-                    </div>
-                  </div>
-                </RoleGuard>
-
-                <RoleGuard allowedRoles={['mesero']}>
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <h2 className="text-xl font-semibold mb-4">Panel de Mesero</h2>
-                    <p className="text-gray-600 mb-4">
-                      Como mesero, puedes tomar pedidos para las mesas del restaurante. 
-                      Los pedidos se envían directamente a cocina sin pasar por el proceso de pago.
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <Utensils className="h-4 w-4 text-orange-600" />
-                      <span className="text-sm text-gray-600">
-                        Selecciona productos del menú y asígnalos a una mesa
                       </span>
                     </div>
                   </div>

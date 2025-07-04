@@ -10,8 +10,7 @@ import {
   Grid3X3,
   CreditCard,
   CheckCircle,
-  Utensils,
-  UserCog
+  Utensils
 } from 'lucide-react';
 
 interface AdminMobileNavProps {
@@ -28,7 +27,6 @@ const AdminMobileNav = ({ activeTab, setActiveTab }: AdminMobileNavProps) => {
     { value: 'tables', label: 'Mesas', icon: Utensils },
     { value: 'inventory', label: 'Inventario', icon: Package },
     { value: 'drivers', label: 'Repartidores', icon: Users },
-    { value: 'users', label: 'Usuarios', icon: UserCog },
     { value: 'stats', label: 'Estadísticas', icon: BarChart3 },
     { value: 'promotions', label: 'Promociones', icon: Gift },
     { value: 'payment-methods', label: 'Métodos Pago', icon: CreditCard },

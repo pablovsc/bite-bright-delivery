@@ -17,6 +17,10 @@ const OrderManagement = () => {
     return <div className="text-center py-8">Cargando pedidos...</div>;
   }
 
+  const handleOrderStatusChange = (orderId: string, status: string) => {
+    handleStatusChange(orderId, status as any);
+  };
+
   return (
     <div className="space-y-6">
       <OrderStatusFilter 
@@ -29,7 +33,7 @@ const OrderManagement = () => {
           <OrderCard 
             key={order.id}
             order={order}
-            onStatusChange={handleStatusChange}
+            onStatusChange={handleOrderStatusChange}
           />
         ))}
 

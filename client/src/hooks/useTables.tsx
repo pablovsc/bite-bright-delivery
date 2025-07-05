@@ -31,7 +31,7 @@ export const useTables = () => {
         table_number: table.table_number,
         capacity: table.capacity,
         status: table.status as 'available' | 'occupied' | 'cleaning',
-        zone: table.zone,
+        zone: table.zone || undefined,
         created_at: table.created_at,
         updated_at: table.updated_at
       })) || [];
@@ -80,7 +80,6 @@ const createOrderItem = async (orderId: string, item: any) => {
         .from('order_items')
         .insert({
           order_id: orderId,
-          menu_item_id: null,
           composite_dish_id: compositeDish.id,
           quantity: item.quantity,
           unit_price: item.price,
@@ -114,7 +113,6 @@ const createOrderItem = async (orderId: string, item: any) => {
       .insert({
         order_id: orderId,
         menu_item_id: menuItem.id,
-        composite_dish_id: null,
         quantity: item.quantity,
         unit_price: item.price,
         total_price: item.price * item.quantity
@@ -145,7 +143,6 @@ const createOrderItem = async (orderId: string, item: any) => {
       .from('order_items')
       .insert({
         order_id: orderId,
-        menu_item_id: null,
         composite_dish_id: compositeDish.id,
         quantity: item.quantity,
         unit_price: item.price,
@@ -179,7 +176,6 @@ const createOrderItem = async (orderId: string, item: any) => {
     .insert({
       order_id: orderId,
       menu_item_id: menuItem.id,
-      composite_dish_id: null,
       quantity: item.quantity,
       unit_price: item.price,
       total_price: item.price * item.quantity

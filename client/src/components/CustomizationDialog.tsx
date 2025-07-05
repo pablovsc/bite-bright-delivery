@@ -137,44 +137,6 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
   };
 
   const handleAddToCart = () => {
-    // Crear detalles de personalización para mostrar en las órdenes
-    const baseProducts = dish.dish_base_products?.map(bp => ({
-      name: bp.menu_items.name,
-      quantity: bp.quantity
-    })) || [];
-
-    const includedOptionals = customizations
-      .filter(c => c.isIncluded)
-      .map(c => {
-        const element = dish.dish_optional_elements?.find(e => e.id === c.elementId);
-        const replacement = getReplacementItem(c.elementId);
-        return {
-          name: element?.menu_items.name || 'Elemento desconocido',
-          replacement: replacement?.name,
-          priceAdjustment: c.priceAdjustment
-        };
-      });
-
-    const excludedOptionals = customizations
-      .filter(c => !c.isIncluded)
-      .map(c => {
-        const element = dish.dish_optional_elements?.find(e => e.id === c.elementId);
-        return {
-          name: element?.menu_items.name || 'Elemento desconocido'
-        };
-      });
-
-    const totalAdjustments = customizations.reduce((sum, c) => sum + c.priceAdjustment, 0);
-
-    const customizationData = {
-      dishName: dish.name,
-      basePrice: dish.base_price,
-      totalAdjustments,
-      baseProducts,
-      includedOptionals,
-      excludedOptionals
-    };
-
     // Create a MenuItem-compatible object for the customized dish
     const customizedDish = {
       id: `${dish.id}-${Date.now()}`, // Unique ID for customized version
@@ -187,10 +149,7 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
       created_at: dish.created_at || new Date().toISOString(),
       preparation_time: dish.preparation_time || '',
       rating: 0,
-      updated_at: dish.updated_at || new Date().toISOString(),
-      // Agregar información de personalización para referencia
-      customization_data: JSON.stringify(customizationData),
-      composite_dish_id: dish.id
+      updated_at: dish.updated_at || new Date().toISOString()
     };
 
     addItem(customizedDish);

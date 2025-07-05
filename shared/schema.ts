@@ -99,7 +99,6 @@ export const orderItems = pgTable("order_items", {
   quantity: integer("quantity").notNull().default(1),
   unit_price: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
   total_price: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
-  customization_data: text("customization_data"),
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

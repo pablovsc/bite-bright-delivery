@@ -80,6 +80,7 @@ const createOrderItem = async (orderId: string, item: any) => {
         .from('order_items')
         .insert({
           order_id: orderId,
+          menu_item_id: null,
           composite_dish_id: compositeDish.id,
           quantity: item.quantity,
           unit_price: item.price,
@@ -113,6 +114,7 @@ const createOrderItem = async (orderId: string, item: any) => {
       .insert({
         order_id: orderId,
         menu_item_id: menuItem.id,
+        composite_dish_id: null,
         quantity: item.quantity,
         unit_price: item.price,
         total_price: item.price * item.quantity
@@ -143,6 +145,7 @@ const createOrderItem = async (orderId: string, item: any) => {
       .from('order_items')
       .insert({
         order_id: orderId,
+        menu_item_id: null,
         composite_dish_id: compositeDish.id,
         quantity: item.quantity,
         unit_price: item.price,
@@ -176,6 +179,7 @@ const createOrderItem = async (orderId: string, item: any) => {
     .insert({
       order_id: orderId,
       menu_item_id: menuItem.id,
+      composite_dish_id: null,
       quantity: item.quantity,
       unit_price: item.price,
       total_price: item.price * item.quantity

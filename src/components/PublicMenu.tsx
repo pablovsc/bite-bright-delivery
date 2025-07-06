@@ -49,6 +49,9 @@ const PublicMenu = () => {
 
   // Get filtered regular menu items
   const getFilteredMenuItems = () => {
+    // Si está seleccionada la categoría "composite", no mostrar items regulares
+    if (selectedCategory === 'composite') return [];
+    
     let allItems: any[] = [];
     
     if (categories) {
@@ -66,6 +69,9 @@ const PublicMenu = () => {
 
   // Get filtered composite dishes
   const getFilteredCompositeDishes = () => {
+    // Si está seleccionada una categoría específica (no "composite" ni null), no mostrar platos compuestos
+    if (selectedCategory !== null && selectedCategory !== 'composite') return [];
+    
     if (!compositeDishes) return [];
     return filterItems(compositeDishes, searchTerm);
   };
@@ -103,6 +109,7 @@ const PublicMenu = () => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         totalItems={totalFilteredItems}
+        compositeDishesCount={compositeDishes?.length || 0}
       />
       
       {/* Results */}

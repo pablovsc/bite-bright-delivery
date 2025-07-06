@@ -34,7 +34,8 @@ const SocialAuthButtons = () => {
     }
     setLoading(null);
   };
-
+  return null;
+/*
   return (
     <div className="space-y-3">
       <div className="relative">
@@ -42,7 +43,9 @@ const SocialAuthButtons = () => {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
+          
           <span className="bg-white px-2 text-muted-foreground">O continúa con</span>
+
         </div>
       </div>
 
@@ -100,6 +103,7 @@ const SocialAuthButtons = () => {
       </div>
     </div>
   );
-};
+*/
+  };
 
 export default SocialAuthButtons;

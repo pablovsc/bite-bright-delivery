@@ -16,6 +16,7 @@ interface MenuFilterProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   totalItems: number;
+  compositeDishesCount?: number;
 }
 
 const MenuFilter = ({ 
@@ -24,9 +25,10 @@ const MenuFilter = ({
   onCategoryChange, 
   searchTerm, 
   onSearchChange,
-  totalItems 
+  totalItems,
+  compositeDishesCount = 0
 }: MenuFilterProps) => {
-  const allItemsCount = categories.reduce((total, cat) => total + (cat.menu_items?.length || 0), 0);
+  const allItemsCount = categories.reduce((total, cat) => total + (cat.menu_items?.length || 0), 0) + compositeDishesCount;
 
   return (
     <div className="space-y-6">
@@ -59,6 +61,24 @@ const MenuFilter = ({
             {allItemsCount}
           </span>
         </Button>
+
+        {/* Filtro especial para platos personalizables */}
+        {compositeDishesCount > 0 && (
+          <Button
+            variant={selectedCategory === 'composite' ? "default" : "outline"}
+            onClick={() => onCategoryChange('composite')}
+            className={`rounded-full px-6 py-2 ${
+              selectedCategory === 'composite' 
+                ? "bg-orange-500 hover:bg-orange-600 text-white" 
+                : "hover:bg-gray-50"
+            }`}
+          >
+            🍽️ Platos Personalizables
+            <span className="ml-2 bg-white/20 px-2 py-1 rounded-full text-xs">
+              {compositeDishesCount}
+            </span>
+          </Button>
+        )}
 
         {categories.map((category) => (
           <Button

@@ -83,7 +83,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-orange-600">BiteBright</h1>
+              <h1 className="text-2xl font-bold text-orange-600">Flamas</h1>
             </div>
             
             {/* Desktop Navigation */}
@@ -234,11 +234,10 @@ const Index = () => {
                 <div className="max-w-3xl mx-auto">
                   <h1 className="text-4xl font-bold text-gray-900 sm:text-6xl">
                     Tu comida favorita
-                    <span className="text-orange-600"> a domicilio</span>
+                    <span className="text-orange-600"> </span>
                   </h1>
                   <p className="mt-6 text-lg leading-8 text-gray-600">
-                    Descubre los mejores restaurantes de tu ciudad y recibe tu comida favorita 
-                    directamente en tu puerta. Rápido, fácil y delicioso.
+                    
                   </p>
                   <div className="mt-10 flex items-center justify-center gap-x-6">
                     <Link to="/auth">

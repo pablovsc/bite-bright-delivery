@@ -11,7 +11,7 @@ const AdminHeader = () => {
         <div className="flex justify-between items-center h-16">
           {/* Mobile logo - only show on smaller screens */}
           <div className="lg:hidden">
-            <h1 className="text-xl font-bold text-orange-600">BiteBright</h1>
+            <h1 className="text-xl font-bold text-orange-600">Flamas</h1>
           </div>
           
           {/* User info and actions */}

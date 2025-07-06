@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, MapPin, Phone } from 'lucide-react';
+import { User, MapPin, Phone, Utensils } from 'lucide-react';
 import { type Order } from './types';
 
 interface OrderCustomerInfoProps {
@@ -8,6 +8,10 @@ interface OrderCustomerInfoProps {
 }
 
 const OrderCustomerInfo = ({ order }: OrderCustomerInfoProps) => {
+  // Determinar si el pedido es de mesa (mesero)
+  const isTableOrder = order.notes?.includes('Mesa:');
+  const tableNumber = isTableOrder ? order.notes?.replace('Mesa: ', '') : null;
+
   return (
     <div className="grid md:grid-cols-2 gap-4 mb-4">
       <div>
@@ -17,22 +21,52 @@ const OrderCustomerInfo = ({ order }: OrderCustomerInfoProps) => {
         </h4>
         <div className="text-sm text-gray-600">
           <div>{order.profiles?.full_name}</div>
-          <div className="flex items-center gap-1">
-            <Phone className="w-3 h-3" />
-            {order.profiles?.phone}
-          </div>
+          {order.profiles?.phone && (
+            <div className="flex items-center gap-1">
+              <Phone className="w-3 h-3" />
+              {order.profiles.phone}
+            </div>
+          )}
         </div>
       </div>
 
       <div>
-        <h4 className="font-medium mb-2 flex items-center gap-2">
-          <MapPin className="w-4 h-4" />
-          Dirección de Entrega
-        </h4>
-        <div className="text-sm text-gray-600">
-          <div>{order.delivery_addresses?.street_address}</div>
-          <div>{order.delivery_addresses?.city}, {order.delivery_addresses?.postal_code}</div>
-        </div>
+        {tableNumber ? (
+          <>
+            <h4 className="font-medium mb-2 flex items-center gap-2">
+              <Utensils className="w-4 h-4" />
+              Información de Mesa
+            </h4>
+            <div className="text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <Utensils className="w-3 h-3" />
+                Mesa: {tableNumber}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Servicio en mesa</div>
+            </div>
+          </>
+        ) : order.delivery_addresses ? (
+          <>
+            <h4 className="font-medium mb-2 flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Dirección de Entrega
+            </h4>
+            <div className="text-sm text-gray-600">
+              <div>{order.delivery_addresses.street_address}</div>
+              <div>{order.delivery_addresses.city}, {order.delivery_addresses.postal_code}</div>
+            </div>
+          </>
+        ) : (
+          <>
+            <h4 className="font-medium mb-2 flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Información de Entrega
+            </h4>
+            <div className="text-sm text-gray-500">
+              Sin información de entrega
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

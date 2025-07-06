@@ -29,7 +29,7 @@ const MenuItemCard = ({ item }: MenuItemCardProps) => {
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-white">
-      {/* Popular Badge */}
+      {/* Popular Badge 
       {item.rating && item.rating >= 4.5 && (
         <div className="absolute top-3 left-3 z-10">
           <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
@@ -37,7 +37,8 @@ const MenuItemCard = ({ item }: MenuItemCardProps) => {
           </span>
         </div>
       )}
-
+        */}
+        
       {/* Rating Badge */}
       {item.rating && item.rating > 0 && (
         <div className="absolute top-3 right-3 z-10">

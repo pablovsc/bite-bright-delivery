@@ -76,8 +76,8 @@ const Auth = () => {
 
   const testUsers = [
     { email: 'restaurant@test.com', password: 'restaurant', role: 'Restaurante', color: 'bg-blue-500' },
-    { email: 'cliente@test.com', password: 'cliente', role: 'Cliente', color: 'bg-orange-500' },
-    { email: 'delivery@test.com', password: 'delivery', role: 'Repartidor', color: 'bg-green-500' },
+    //{ email: 'cliente@test.com', password: 'cliente', role: 'Cliente', color: 'bg-orange-500' },
+    //{ email: 'delivery@test.com', password: 'delivery', role: 'Repartidor', color: 'bg-green-500' },
     { email: 'mesero@test.com', password: 'mesero', role: 'Mesero', color: 'bg-purple-500' },
   ];
 
@@ -89,8 +89,8 @@ const Auth = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver al inicio
           </Link>
-          <h2 className="text-3xl font-bold text-gray-900">BiteBright</h2>
-          <p className="mt-2 text-gray-600">Tu comida favorita a domicilio</p>
+          <h2 className="text-3xl font-bold text-gray-900">Flamas</h2>
+          <p className="mt-2 text-gray-600">Tu comida favorita</p>
         </div>
 
         {/* Usuarios de prueba */}
@@ -136,7 +136,7 @@ const Auth = () => {
               </CardHeader>
               <CardContent>
                 <SocialAuthButtons />
-                
+                {/* 
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
@@ -145,7 +145,7 @@ const Auth = () => {
                     <span className="bg-white px-2 text-muted-foreground">O con email</span>
                   </div>
                 </div>
-
+                */}
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div>
                     <Label htmlFor="signin-email">Email</Label>
@@ -185,7 +185,7 @@ const Auth = () => {
               </CardHeader>
               <CardContent>
                 <SocialAuthButtons />
-                
+                {/* 
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
@@ -194,7 +194,7 @@ const Auth = () => {
                     <span className="bg-white px-2 text-muted-foreground">O con email</span>
                   </div>
                 </div>
-
+                   */}
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div>
                     <Label htmlFor="signup-name">Nombre Completo</Label>

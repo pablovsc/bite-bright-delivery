@@ -40,7 +40,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
       <div className="flex-1 flex flex-col min-h-0">
         {/* Logo section */}
         <div className="flex items-center h-16 flex-shrink-0 px-6 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-orange-600">BiteBright</h1>
+          <h1 className="text-xl font-bold text-orange-600">Flamas</h1>
         </div>
         
         {/* Navigation */}

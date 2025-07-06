@@ -1,13 +1,18 @@
 
+import { useState } from 'react';
 import { useMenu } from '@/hooks/useMenu';
 import { usePublicCompositeDishes } from '@/hooks/usePublicCompositeDishes';
-import MenuCategory from './MenuCategory';
+import MenuFilter from './MenuFilter';
+import MenuItemCard from './MenuItemCard';
 import CompositeDishCard from './CompositeDishCard';
 import { Card, CardContent } from '@/components/ui/card';
 
 const PublicMenu = () => {
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useMenu();
   const { data: compositeDishes, isLoading: dishesLoading, error: dishesError } = usePublicCompositeDishes();
+  
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const isLoading = categoriesLoading || dishesLoading;
   const error = categoriesError || dishesError;
@@ -33,6 +38,42 @@ const PublicMenu = () => {
     );
   }
 
+  // Filter items based on category and search
+  const filterItems = (items: any[], searchTerm: string) => {
+    if (!searchTerm) return items;
+    return items.filter(item => 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  };
+
+  // Get filtered regular menu items
+  const getFilteredMenuItems = () => {
+    let allItems: any[] = [];
+    
+    if (categories) {
+      categories.forEach(category => {
+        if (selectedCategory === null || selectedCategory === category.id) {
+          if (category.menu_items) {
+            allItems.push(...category.menu_items);
+          }
+        }
+      });
+    }
+    
+    return filterItems(allItems, searchTerm);
+  };
+
+  // Get filtered composite dishes
+  const getFilteredCompositeDishes = () => {
+    if (!compositeDishes) return [];
+    return filterItems(compositeDishes, searchTerm);
+  };
+
+  const filteredMenuItems = getFilteredMenuItems();
+  const filteredCompositeDishes = getFilteredCompositeDishes();
+  const totalFilteredItems = filteredMenuItems.length + filteredCompositeDishes.length;
+
   const hasCompositeDishes = compositeDishes && compositeDishes.length > 0;
   const hasCategories = categories && categories.length > 0;
 
@@ -48,33 +89,69 @@ const PublicMenu = () => {
 
   return (
     <div className="space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Nuestro Menú</h1>
-        <p className="text-gray-600">Descubre nuestros deliciosos platillos</p>
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold text-gray-900">Nuestro Menú</h1>
+        <p className="text-gray-600">Usa nuestro buscador y filtros para encontrar exactamente lo que buscas.</p>
       </div>
       
-      {/* Platos Compuestos - Mostrar primero */}
-      {hasCompositeDishes && (
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            🍽️ Platos Personalizables
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Personaliza tu experiencia culinaria con nuestros platos compuestos
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {compositeDishes.map((dish) => (
-              <CompositeDishCard key={dish.id} dish={dish} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Filters */}
+      <MenuFilter
+        categories={categories || []}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        totalItems={totalFilteredItems}
+      />
       
-      {/* Categorías del menú regular */}
-      {categories?.map((category) => (
-        <MenuCategory key={category.id} category={category} />
-      ))}
+      {/* Results */}
+      <div className="space-y-8">
+        {/* Composite Dishes */}
+        {filteredCompositeDishes.length > 0 && (
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              🍽️ Platos Personalizables
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredCompositeDishes.map((dish) => (
+                <CompositeDishCard key={dish.id} dish={dish} />
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Regular Menu Items */}
+        {filteredMenuItems.length > 0 && (
+          <div>
+            {filteredCompositeDishes.length > 0 && (
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                🍴 Menú Regular
+              </h2>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredMenuItems.map((item) => (
+                <MenuItemCard key={item.id} item={item} />
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* No Results */}
+        {totalFilteredItems === 0 && (
+          <Card className="bg-gray-50">
+            <CardContent className="p-8 text-center">
+              <div className="text-4xl mb-4">🔍</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                No se encontraron resultados
+              </h3>
+              <p className="text-gray-600">
+                Intenta cambiar los filtros o buscar otros términos.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };

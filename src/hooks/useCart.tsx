@@ -64,24 +64,38 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   const addItem = (item: MenuItem) => {
+    console.log('useCart - Adding item to cart:', {
+      itemId: item.id,
+      itemName: item.name,
+      itemPrice: item.price,
+      currentCartItems: items.length
+    });
+    
     setItems(prev => {
       const existingItem = prev.find(cartItem => cartItem.id === item.id);
       if (existingItem) {
+        console.log('useCart - Item already exists, updating quantity');
         return prev.map(cartItem =>
           cartItem.id === item.id
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         );
       }
-      return [...prev, { ...item, quantity: 1 }];
+      
+      console.log('useCart - Adding new item to cart');
+      const newItems = [...prev, { ...item, quantity: 1 }];
+      console.log('useCart - Updated cart items:', newItems);
+      return newItems;
     });
   };
 
   const removeItem = (itemId: string) => {
+    console.log('useCart - Removing item:', itemId);
     setItems(prev => prev.filter(item => item.id !== itemId));
   };
 
   const updateQuantity = (itemId: string, quantity: number) => {
+    console.log('useCart - Updating quantity:', { itemId, quantity });
     if (quantity <= 0) {
       removeItem(itemId);
       return;
@@ -95,11 +109,31 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const clearCart = () => {
+    console.log('useCart - Clearing cart');
     setItems([]);
   };
 
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
-  const totalPrice = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+  const totalPrice = items.reduce((total, item) => {
+    console.log('useCart - Calculating price for item:', {
+      itemName: item.name,
+      itemPrice: item.price,
+      quantity: item.quantity,
+      itemTotal: item.price * item.quantity
+    });
+    return total + (item.price * item.quantity);
+  }, 0);
+
+  console.log('useCart - Current cart state:', {
+    totalItems,
+    totalPrice,
+    items: items.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity
+    }))
+  });
 
   return (
     <CartContext.Provider value={{

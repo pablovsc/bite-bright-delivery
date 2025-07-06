@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -46,18 +45,41 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
       sum + custom.priceAdjustment, 0
     );
     setTotalPrice(dish.base_price + optionalPrice);
+    
+    console.log('CustomizationDialog - Initial state:', {
+      dishName: dish.name,
+      basePrice: dish.base_price,
+      initialCustomizations,
+      optionalPrice,
+      totalPrice: dish.base_price + optionalPrice
+    });
   }, [dish]);
 
   const toggleOptionalElement = (elementId: string, element: any) => {
+    console.log('CustomizationDialog - Toggling element:', {
+      elementId,
+      elementName: element.menu_items.name,
+      currentState: customizations.find(c => c.elementId === elementId)
+    });
+    
     setCustomizations(prev => {
       const updated = prev.map(custom => {
         if (custom.elementId === elementId) {
           const newIsIncluded = !custom.isIncluded;
+          const newPriceAdjustment = newIsIncluded ? element.additional_price : 0;
+          
+          console.log('CustomizationDialog - Toggle calculation:', {
+            elementId,
+            newIsIncluded,
+            additionalPrice: element.additional_price,
+            newPriceAdjustment
+          });
+          
           return {
             ...custom,
             isIncluded: newIsIncluded,
             replacementItemId: undefined, // Reset replacement when toggling
-            priceAdjustment: newIsIncluded ? element.additional_price : 0
+            priceAdjustment: newPriceAdjustment
           };
         }
         return custom;
@@ -67,6 +89,12 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
       const newTotalPrice = dish.base_price + updated.reduce((sum, custom) => 
         sum + custom.priceAdjustment, 0
       );
+      
+      console.log('CustomizationDialog - After toggle:', {
+        updatedCustomizations: updated,
+        newTotalPrice
+      });
+      
       setTotalPrice(newTotalPrice);
       
       return updated;
@@ -74,12 +102,28 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
   };
 
   const replaceOptionalElement = (elementId: string, replacementItem: MenuItem, originalElement: any) => {
+    console.log('CustomizationDialog - Replacing element:', {
+      elementId,
+      originalItemName: originalElement.menu_items.name,
+      originalItemPrice: originalElement.menu_items.price,
+      replacementItemName: replacementItem.name,
+      replacementItemPrice: replacementItem.price,
+      additionalPrice: originalElement.additional_price
+    });
+    
     setCustomizations(prev => {
       const updated = prev.map(custom => {
         if (custom.elementId === elementId) {
           const priceDifference = replacementItem.price - originalElement.menu_items.price;
           // The price adjustment should be the base additional price plus the difference
           const newPriceAdjustment = originalElement.additional_price + priceDifference;
+          
+          console.log('CustomizationDialog - Replacement calculation:', {
+            elementId,
+            priceDifference,
+            originalAdditionalPrice: originalElement.additional_price,
+            newPriceAdjustment
+          });
           
           return {
             ...custom,
@@ -95,6 +139,12 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
       const newTotalPrice = dish.base_price + updated.reduce((sum, custom) => 
         sum + custom.priceAdjustment, 0
       );
+      
+      console.log('CustomizationDialog - After replacement:', {
+        updatedCustomizations: updated,
+        newTotalPrice
+      });
+      
       setTotalPrice(newTotalPrice);
       
       return updated;
@@ -102,6 +152,11 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
   };
 
   const removeReplacement = (elementId: string, originalElement: any) => {
+    console.log('CustomizationDialog - Removing replacement for element:', {
+      elementId,
+      originalElementName: originalElement.menu_items.name
+    });
+    
     setCustomizations(prev => {
       const updated = prev.map(custom => {
         if (custom.elementId === elementId) {
@@ -119,6 +174,12 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
       const newTotalPrice = dish.base_price + updated.reduce((sum, custom) => 
         sum + custom.priceAdjustment, 0
       );
+      
+      console.log('CustomizationDialog - After removing replacement:', {
+        updatedCustomizations: updated,
+        newTotalPrice
+      });
+      
       setTotalPrice(newTotalPrice);
       
       return updated;
@@ -126,6 +187,13 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
   };
 
   const handleAddToCart = () => {
+    console.log('CustomizationDialog - Adding to cart:', {
+      dishName: dish.name,
+      basePrice: dish.base_price,
+      totalPrice,
+      customizations
+    });
+    
     // Create a MenuItem-compatible object for the customized dish
     const customizedDish = {
       id: `${dish.id}-${Date.now()}`, // Unique ID for customized version
@@ -140,6 +208,8 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
       rating: 0,
       updated_at: dish.updated_at || new Date().toISOString()
     };
+
+    console.log('CustomizationDialog - Customized dish object:', customizedDish);
 
     addItem(customizedDish);
     toast.success(`${dish.name} personalizado agregado al carrito`);

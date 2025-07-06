@@ -1,24 +1,22 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { type Order, type OrderStatus } from '../types';
+import { type Order, type OrderStatus, extractTableId } from '../types';
 
 export const useOrderManagement = () => {
+  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
   const queryClient = useQueryClient();
-  const [selectedStatus, setSelectedStatus] = useState<string | OrderStatus>('all');
 
-  const { data: orders, isLoading, error } = useQuery({
+  const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-orders', selectedStatus],
     queryFn: async () => {
-      console.log('Fetching orders with selectedStatus:', selectedStatus);
-      
       let query = supabase
         .from('orders')
         .select(`
           *,
-          profiles (
+          profiles:user_id (
             full_name,
             phone,
             email
@@ -45,7 +43,7 @@ export const useOrderManagement = () => {
                   name
                 )
               ),
-              replacement_menu_items:menu_items!order_dish_customizations_replacement_item_id_fkey (
+              replacement_menu_items:replacement_item_id (
                 name
               )
             )
@@ -58,54 +56,52 @@ export const useOrderManagement = () => {
             )
           ),
           manual_payment_verifications (
-            id,
-            payment_method_type,
-            origin_bank,
-            amount_paid,
-            reference_number,
-            phone_number_used,
-            payment_proof_url,
-            status,
-            rejection_reason,
-            created_at
+            *
           )
         `)
         .order('created_at', { ascending: false });
 
       if (selectedStatus !== 'all') {
-        query = query.eq('status', selectedStatus as OrderStatus);
+        query = query.eq('status', selectedStatus);
       }
 
       const { data, error } = await query;
-      
-      if (error) {
-        console.error('Error fetching orders:', error);
-        throw error;
-      }
-      
-      console.log('Fetched orders with customizations:', data);
-      return data as Order[];
+
+      if (error) throw error;
+
+      // Para cada pedido, si tiene notas de mesa, obtener la información de la mesa
+      const ordersWithTables = await Promise.all(
+        (data || []).map(async (order) => {
+          const tableId = extractTableId(order.notes);
+          
+          if (tableId) {
+            const { data: tableData } = await supabase
+              .from('restaurant_tables')
+              .select('table_number, zone')
+              .eq('id', tableId)
+              .single();
+            
+            return {
+              ...order,
+              restaurant_table: tableData
+            };
+          }
+          
+          return order;
+        })
+      );
+
+      return ordersWithTables as Order[];
     }
   });
-
-  // Log any query errors
-  useEffect(() => {
-    if (error) {
-      console.error('Query error:', error);
-      toast.error('Error al cargar los pedidos: ' + error.message);
-    }
-  }, [error]);
 
   const updateOrderStatus = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: OrderStatus }) => {
       const { error } = await supabase
         .from('orders')
-        .update({ 
-          status: status,
-          updated_at: new Date().toISOString()
-        })
+        .update({ status })
         .eq('id', orderId);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -113,58 +109,13 @@ export const useOrderManagement = () => {
       toast.success('Estado del pedido actualizado');
     },
     onError: (error) => {
-      toast.error('Error al actualizar el estado: ' + error.message);
+      toast.error('Error al actualizar el estado del pedido');
+      console.error('Error updating order status:', error);
     }
   });
 
-  // Real-time subscription for orders
-  useEffect(() => {
-    const channel = supabase
-      .channel('order-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders'
-        },
-        () => {
-          console.log('Real-time order change detected');
-          queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
-
-  // Real-time subscription for payment verifications
-  useEffect(() => {
-    const channel = supabase
-      .channel('payment-verification-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'manual_payment_verifications'
-        },
-        () => {
-          console.log('Real-time payment verification change detected');
-          queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
-
-  const handleStatusChange = (orderId: string, status: OrderStatus) => {
-    updateOrderStatus.mutate({ orderId, status });
+  const handleStatusChange = (orderId: string, status: string) => {
+    updateOrderStatus.mutate({ orderId, status: status as OrderStatus });
   };
 
   return {

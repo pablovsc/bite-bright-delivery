@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, MapPin, Phone, Clock, CreditCard, Utensils } from 'lucide-react';
-import { statusColors, statusLabels, type Order } from './types';
+import { statusColors, statusLabels, type Order, extractTableId } from './types';
 
 interface OrderDetailDialogProps {
   order: Order | null;
@@ -15,9 +15,9 @@ interface OrderDetailDialogProps {
 const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDetailDialogProps) => {
   if (!order) return null;
 
-  // Determinar si el pedido es de mesa (mesero)
-  const isTableOrder = order.notes?.includes('Mesa:');
-  const tableNumber = isTableOrder ? order.notes?.replace('Mesa: ', '') : null;
+  // Usar la función helper para extraer el ID de la mesa y usar la información de la relación
+  const tableId = extractTableId(order.notes);
+  const isTableOrder = tableId !== null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,10 +48,13 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDetailDialogProps
                 <Phone className="w-4 h-4" />
                 <strong>Teléfono:</strong> {order.profiles?.phone || 'N/A'}
               </div>
-              {tableNumber ? (
+              {isTableOrder ? (
                 <div className="flex items-center gap-2">
                   <Utensils className="w-4 h-4" />
-                  <strong>Mesa:</strong> {tableNumber}
+                  <strong>Mesa:</strong> Mesa {order.restaurant_table?.table_number || tableId?.slice(-4)}
+                  {order.restaurant_table?.zone && (
+                    <span className="text-sm text-gray-500">({order.restaurant_table.zone})</span>
+                  )}
                 </div>
               ) : (
                 order.delivery_addresses && (
@@ -89,7 +92,7 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDetailDialogProps
                 <strong>Tiempo Estimado:</strong> {order.estimated_delivery_time} minutos
               </div>
               <div>
-                <strong>Tipo de Servicio:</strong> {tableNumber ? 'Mesa' : 'Delivery'}
+                <strong>Tipo de Servicio:</strong> {isTableOrder ? 'Mesa' : 'Delivery'}
               </div>
             </CardContent>
           </Card>

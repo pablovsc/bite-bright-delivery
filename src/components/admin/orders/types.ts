@@ -1,4 +1,3 @@
-
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 
 export const statusColors: Record<OrderStatus, string> = {
@@ -17,6 +16,16 @@ export const statusLabels: Record<OrderStatus, string> = {
   ready: 'Listo',
   delivered: 'Entregado',
   cancelled: 'Cancelado'
+};
+
+// Helper function to extract table ID from notes
+export const extractTableId = (notes?: string) => {
+  if (!notes || !notes.includes('Mesa:')) {
+    return null;
+  }
+  
+  const tableId = notes.replace('Mesa: ', '').trim();
+  return tableId;
 };
 
 export interface Order {
@@ -50,6 +59,12 @@ export interface Order {
 
   // Nueva relación con verificaciones de pago
   manual_payment_verifications?: ManualPaymentVerification[];
+
+  // Nueva relación con mesas
+  restaurant_table?: {
+    table_number: string;
+    zone?: string;
+  };
 }
 
 export interface OrderItem {

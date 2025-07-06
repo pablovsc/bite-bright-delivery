@@ -33,6 +33,21 @@ export const useOrderManagement = () => {
             menu_items (
               name,
               price
+            ),
+            composite_dishes (
+              name,
+              base_price
+            ),
+            order_dish_customizations (
+              *,
+              dish_optional_elements (
+                menu_items (
+                  name
+                )
+              ),
+              replacement_menu_items:menu_items!order_dish_customizations_replacement_item_id_fkey (
+                name
+              )
             )
           ),
           order_assignments (
@@ -68,7 +83,7 @@ export const useOrderManagement = () => {
         throw error;
       }
       
-      console.log('Fetched orders with payment verifications:', data);
+      console.log('Fetched orders with customizations:', data);
       return data as Order[];
     }
   });

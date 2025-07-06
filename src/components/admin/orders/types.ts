@@ -1,3 +1,4 @@
+
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 
 export const statusColors: Record<OrderStatus, string> = {
@@ -69,6 +70,29 @@ export interface OrderItem {
   composite_dishes?: {
     name: string;
     base_price: number;
+  };
+
+  // Nueva relación con customizaciones de platos
+  order_dish_customizations?: OrderDishCustomization[];
+}
+
+export interface OrderDishCustomization {
+  id: string;
+  order_item_id: string;
+  optional_element_id: string;
+  is_included: boolean;
+  replacement_item_id?: string;
+  price_adjustment: number;
+  created_at: string;
+
+  dish_optional_elements?: {
+    menu_items: {
+      name: string;
+    };
+  };
+
+  replacement_menu_items?: {
+    name: string;
   };
 }
 

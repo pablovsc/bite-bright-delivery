@@ -75,8 +75,9 @@ const createOrderItem = async (orderId: string, item: any) => {
     
     if (!compositeError && compositeDish) {
       console.log('Found composite dish:', compositeDish);
+      
       // Create order item for composite dish
-      const { error: itemError } = await supabase
+      const { data: orderItem, error: itemError } = await supabase
         .from('order_items')
         .insert({
           order_id: orderId,
@@ -85,13 +86,51 @@ const createOrderItem = async (orderId: string, item: any) => {
           quantity: item.quantity,
           unit_price: item.price,
           total_price: item.price * item.quantity
-        });
+        })
+        .select()
+        .single();
       
       if (itemError) {
         console.error('Error creating composite dish order item:', itemError);
         throw itemError;
       }
-      console.log('Successfully created composite dish order item');
+      
+      console.log('Successfully created composite dish order item:', orderItem);
+      
+      // Check for stored customizations and save them
+      const customizationData = localStorage.getItem(`dish-customization-${item.id}`);
+      if (customizationData && orderItem) {
+        try {
+          const { customizations } = JSON.parse(customizationData);
+          console.log('Found customizations to save:', customizations);
+          
+          // Save customizations to the database
+          for (const customization of customizations) {
+            const { error: customError } = await supabase
+              .from('order_dish_customizations')
+              .insert({
+                order_item_id: orderItem.id,
+                optional_element_id: customization.elementId,
+                is_included: customization.isIncluded,
+                replacement_item_id: customization.replacementItemId || null,
+                price_adjustment: customization.priceAdjustment
+              });
+            
+            if (customError) {
+              console.error('Error saving customization:', customError);
+              // Don't throw here, just log the error
+            }
+          }
+          
+          // Clean up localStorage
+          localStorage.removeItem(`dish-customization-${item.id}`);
+          console.log('Customizations saved and localStorage cleaned');
+          
+        } catch (error) {
+          console.error('Error processing customizations:', error);
+        }
+      }
+      
       return;
     }
     

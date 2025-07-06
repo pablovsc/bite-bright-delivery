@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { useCart } from '@/hooks/useCart';
 import { toast } from 'sonner';
 import type { CompositeDish } from '@/hooks/useCompositeDishes';
 import type { Tables } from '@/integrations/supabase/types';
+import { supabase } from '@/integrations/supabase/client';
 
 type MenuItem = Tables<'menu_items'>;
 
@@ -186,7 +188,7 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
     });
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     console.log('CustomizationDialog - Adding to cart:', {
       dishName: dish.name,
       basePrice: dish.base_price,
@@ -210,6 +212,14 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
     };
 
     console.log('CustomizationDialog - Customized dish object:', customizedDish);
+
+    // Store customizations in localStorage for later use during order creation
+    const customizationData = {
+      dishId: dish.id,
+      customizations: customizations.filter(c => c.isIncluded)
+    };
+    
+    localStorage.setItem(`dish-customization-${customizedDish.id}`, JSON.stringify(customizationData));
 
     addItem(customizedDish);
     toast.success(`${dish.name} personalizado agregado al carrito`);

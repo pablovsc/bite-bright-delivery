@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -77,8 +78,7 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
       const updated = prev.map(custom => {
         if (custom.elementId === elementId) {
           const priceDifference = replacementItem.price - originalElement.menu_items.price;
-          // Only add the additional price if the element is included by default
-          // Plus the price difference for the replacement
+          // The price adjustment should be the base additional price plus the difference
           const newPriceAdjustment = originalElement.additional_price + priceDifference;
           
           return {

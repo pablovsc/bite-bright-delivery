@@ -798,7 +798,7 @@ export type Database = {
           composite_dish_id: string | null
           created_at: string
           id: string
-          menu_item_id: string | null
+          menu_item_id: string
           order_id: string
           quantity: number
           total_price: number
@@ -808,7 +808,7 @@ export type Database = {
           composite_dish_id?: string | null
           created_at?: string
           id?: string
-          menu_item_id?: string | null
+          menu_item_id: string
           order_id: string
           quantity?: number
           total_price: number
@@ -818,7 +818,7 @@ export type Database = {
           composite_dish_id?: string | null
           created_at?: string
           id?: string
-          menu_item_id?: string | null
+          menu_item_id?: string
           order_id?: string
           quantity?: number
           total_price?: number

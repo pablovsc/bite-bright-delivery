@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -101,6 +100,7 @@ export const Cart = () => {
                 .from('order_items')
                 .insert({
                   order_id: order.id,
+                  menu_item_id: null,
                   composite_dish_id: compositeDish.id,
                   quantity: item.quantity,
                   unit_price: item.price,
@@ -125,6 +125,7 @@ export const Cart = () => {
               .insert({
                 order_id: order.id,
                 menu_item_id: menuItem.id,
+                composite_dish_id: null,
                 quantity: item.quantity,
                 unit_price: item.price,
                 total_price: item.price * item.quantity
@@ -146,6 +147,7 @@ export const Cart = () => {
               .from('order_items')
               .insert({
                 order_id: order.id,
+                menu_item_id: null,
                 composite_dish_id: compositeDish.id,
                 quantity: item.quantity,
                 unit_price: item.price,
@@ -162,6 +164,7 @@ export const Cart = () => {
             .insert({
               order_id: order.id,
               menu_item_id: item.id,
+              composite_dish_id: null,
               quantity: item.quantity,
               unit_price: item.price,
               total_price: item.price * item.quantity

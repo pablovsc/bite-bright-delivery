@@ -66,6 +66,21 @@ const createOrderItem = async (orderId: string, item: any) => {
     const originalDishId = idParts.slice(0, -1).join('-');
     console.log('Processing customized composite dish, original ID:', originalDishId);
     
+    // Get customization data from localStorage
+    const customizationData = localStorage.getItem(`dish-customization-${item.id}`);
+    let finalPrice = item.price;
+    
+    if (customizationData) {
+      try {
+        const { totalPrice, basePrice } = JSON.parse(customizationData);
+        // Use the stored total price to ensure accuracy
+        finalPrice = totalPrice || item.price;
+        console.log('Using stored customization price:', { totalPrice, basePrice, finalPrice });
+      } catch (error) {
+        console.error('Error parsing customization data:', error);
+      }
+    }
+    
     // Try to find as composite dish first
     const { data: compositeDish, error: compositeError } = await supabase
       .from('composite_dishes')
@@ -76,7 +91,7 @@ const createOrderItem = async (orderId: string, item: any) => {
     if (!compositeError && compositeDish) {
       console.log('Found composite dish:', compositeDish);
       
-      // Create order item for composite dish
+      // Create order item for composite dish with correct price
       const { data: orderItem, error: itemError } = await supabase
         .from('order_items')
         .insert({
@@ -84,8 +99,8 @@ const createOrderItem = async (orderId: string, item: any) => {
           menu_item_id: null,
           composite_dish_id: compositeDish.id,
           quantity: item.quantity,
-          unit_price: item.price,
-          total_price: item.price * item.quantity
+          unit_price: finalPrice, // Use the calculated final price
+          total_price: finalPrice * item.quantity
         })
         .select()
         .single();
@@ -97,8 +112,7 @@ const createOrderItem = async (orderId: string, item: any) => {
       
       console.log('Successfully created composite dish order item:', orderItem);
       
-      // Check for stored customizations and save them
-      const customizationData = localStorage.getItem(`dish-customization-${item.id}`);
+      // Save customizations to the database if available
       if (customizationData && orderItem) {
         try {
           const { customizations } = JSON.parse(customizationData);
@@ -147,7 +161,7 @@ const createOrderItem = async (orderId: string, item: any) => {
       throw new Error(`Item no encontrado: ${item.name}`);
     }
     
-    // Create order item for regular menu item
+    // Create order item for regular menu item with correct price
     const { error: itemError } = await supabase
       .from('order_items')
       .insert({
@@ -155,8 +169,8 @@ const createOrderItem = async (orderId: string, item: any) => {
         menu_item_id: menuItem.id,
         composite_dish_id: null,
         quantity: item.quantity,
-        unit_price: item.price,
-        total_price: item.price * item.quantity
+        unit_price: finalPrice, // Use the calculated final price
+        total_price: finalPrice * item.quantity
       });
     
     if (itemError) {

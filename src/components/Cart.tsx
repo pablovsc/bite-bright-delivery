@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,142 @@ export const Cart = () => {
   const createWaiterOrder = useCreateWaiterOrder();
 
   const isWaiter = userRole === 'mesero';
+
+  const createOrderItemWithCustomizations = async (orderId: string, item: any) => {
+    // Check if it's a customized composite dish (has timestamp in ID)
+    const isCustomizedDish = item.id.includes('-') && item.id.split('-').length > 5;
+    
+    if (isCustomizedDish) {
+      // Extract original dish ID (all parts except the last timestamp part)
+      const idParts = item.id.split('-');
+      const originalDishId = idParts.slice(0, -1).join('-');
+      
+      // Get customization data from localStorage
+      const customizationData = localStorage.getItem(`dish-customization-${item.id}`);
+      let finalPrice = item.price;
+      
+      if (customizationData) {
+        try {
+          const { totalPrice } = JSON.parse(customizationData);
+          // Use the stored total price to ensure accuracy
+          finalPrice = totalPrice || item.price;
+          console.log('Cart - Using stored customization price:', { totalPrice, finalPrice });
+        } catch (error) {
+          console.error('Cart - Error parsing customization data:', error);
+        }
+      }
+      
+      // Try to find as composite dish first
+      const { data: compositeDish, error: compositeError } = await supabase
+        .from('composite_dishes')
+        .select('id, name')
+        .eq('id', originalDishId)
+        .single();
+      
+      if (!compositeError && compositeDish) {
+        const { data: orderItem, error: itemError } = await supabase
+          .from('order_items')
+          .insert({
+            order_id: orderId,
+            menu_item_id: null,
+            composite_dish_id: compositeDish.id,
+            quantity: item.quantity,
+            unit_price: finalPrice, // Use the calculated final price
+            total_price: finalPrice * item.quantity
+          })
+          .select()
+          .single();
+        
+        if (itemError) throw itemError;
+        
+        // Save customizations if available
+        if (customizationData && orderItem) {
+          try {
+            const { customizations } = JSON.parse(customizationData);
+            
+            for (const customization of customizations) {
+              await supabase
+                .from('order_dish_customizations')
+                .insert({
+                  order_item_id: orderItem.id,
+                  optional_element_id: customization.elementId,
+                  is_included: customization.isIncluded,
+                  replacement_item_id: customization.replacementItemId || null,
+                  price_adjustment: customization.priceAdjustment
+                });
+            }
+            
+            // Clean up localStorage
+            localStorage.removeItem(`dish-customization-${item.id}`);
+            
+          } catch (error) {
+            console.error('Cart - Error processing customizations:', error);
+          }
+        }
+        return;
+      }
+      
+      // Fall back to regular menu item
+      const { data: menuItem, error: menuError } = await supabase
+        .from('menu_items')
+        .select('id, name')
+        .eq('id', originalDishId)
+        .single();
+      
+      if (menuError) throw new Error(`Item no encontrado: ${item.name}`);
+      
+      const { error: itemError } = await supabase
+        .from('order_items')
+        .insert({
+          order_id: orderId,
+          menu_item_id: menuItem.id,
+          composite_dish_id: null,
+          quantity: item.quantity,
+          unit_price: finalPrice, // Use the calculated final price
+          total_price: finalPrice * item.quantity
+        });
+      
+      if (itemError) throw itemError;
+      return;
+    }
+    
+    // Regular item - try composite first, then menu items
+    const { data: compositeDish, error: compositeError } = await supabase
+      .from('composite_dishes')
+      .select('id, name')
+      .eq('id', item.id)
+      .single();
+    
+    if (!compositeError && compositeDish) {
+      const { error: itemError } = await supabase
+        .from('order_items')
+        .insert({
+          order_id: orderId,
+          menu_item_id: null,
+          composite_dish_id: compositeDish.id,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity
+        });
+      
+      if (itemError) throw itemError;
+      return;
+    }
+    
+    // Regular menu item
+    const { error: itemError } = await supabase
+      .from('order_items')
+      .insert({
+        order_id: orderId,
+        menu_item_id: item.id,
+        composite_dish_id: null,
+        quantity: item.quantity,
+        unit_price: item.price,
+        total_price: item.price * item.quantity
+      });
+    
+    if (itemError) throw itemError;
+  };
 
   const handlePlaceOrder = async () => {
     if (!user) {
@@ -78,104 +215,9 @@ export const Cart = () => {
 
         if (orderError) throw orderError;
 
-        // Create order items using the same logic as waiter orders
-        const createOrderItem = async (item: any) => {
-          // Check if it's a customized composite dish (has timestamp in ID)
-          const isCustomizedDish = item.id.includes('-') && item.id.split('-').length > 5;
-          
-          if (isCustomizedDish) {
-            // Extract original dish ID (all parts except the last timestamp part)
-            const idParts = item.id.split('-');
-            const originalDishId = idParts.slice(0, -1).join('-');
-            
-            // Try to find as composite dish first
-            const { data: compositeDish, error: compositeError } = await supabase
-              .from('composite_dishes')
-              .select('id, name')
-              .eq('id', originalDishId)
-              .single();
-            
-            if (!compositeError && compositeDish) {
-              const { error: itemError } = await supabase
-                .from('order_items')
-                .insert({
-                  order_id: order.id,
-                  menu_item_id: null,
-                  composite_dish_id: compositeDish.id,
-                  quantity: item.quantity,
-                  unit_price: item.price,
-                  total_price: item.price * item.quantity
-                });
-              
-              if (itemError) throw itemError;
-              return;
-            }
-            
-            // Fall back to regular menu item
-            const { data: menuItem, error: menuError } = await supabase
-              .from('menu_items')
-              .select('id, name')
-              .eq('id', originalDishId)
-              .single();
-            
-            if (menuError) throw new Error(`Item no encontrado: ${item.name}`);
-            
-            const { error: itemError } = await supabase
-              .from('order_items')
-              .insert({
-                order_id: order.id,
-                menu_item_id: menuItem.id,
-                composite_dish_id: null,
-                quantity: item.quantity,
-                unit_price: item.price,
-                total_price: item.price * item.quantity
-              });
-            
-            if (itemError) throw itemError;
-            return;
-          }
-          
-          // Regular item - try composite first, then menu items
-          const { data: compositeDish, error: compositeError } = await supabase
-            .from('composite_dishes')
-            .select('id, name')
-            .eq('id', item.id)
-            .single();
-          
-          if (!compositeError && compositeDish) {
-            const { error: itemError } = await supabase
-              .from('order_items')
-              .insert({
-                order_id: order.id,
-                menu_item_id: null,
-                composite_dish_id: compositeDish.id,
-                quantity: item.quantity,
-                unit_price: item.price,
-                total_price: item.price * item.quantity
-              });
-            
-            if (itemError) throw itemError;
-            return;
-          }
-          
-          // Regular menu item
-          const { error: itemError } = await supabase
-            .from('order_items')
-            .insert({
-              order_id: order.id,
-              menu_item_id: item.id,
-              composite_dish_id: null,
-              quantity: item.quantity,
-              unit_price: item.price,
-              total_price: item.price * item.quantity
-            });
-          
-          if (itemError) throw itemError;
-        };
-
-        // Process each item
+        // Process each item with customizations
         for (const item of items) {
-          await createOrderItem(item);
+          await createOrderItemWithCustomizations(order.id, item);
         }
 
         toast.success('¡Pedido realizado exitosamente!');

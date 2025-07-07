@@ -7,10 +7,11 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { type OrderStatus } from './types';
 
 interface OrderStatusFilterProps {
   selectedStatus: string;
-  onStatusChange: (status: string) => void;
+  onStatusChange: (status: "all" | OrderStatus) => void;
 }
 
 const OrderStatusFilter = ({ selectedStatus, onStatusChange }: OrderStatusFilterProps) => {

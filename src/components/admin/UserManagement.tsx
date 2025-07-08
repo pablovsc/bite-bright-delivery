@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Edit, Ban, CheckCircle } from 'lucide-react';
+import { Search, Eye, Edit, Ban, CheckCircle, Plus } from 'lucide-react';
 import { useUserManagement, UserWithRole } from '@/hooks/useUserManagement';
 import UserDetailsDialog from './UserDetailsDialog';
 import UserEditDialog from './UserEditDialog';
+import UserCreateDialog from './UserCreateDialog';
 import { Database } from '@/integrations/supabase/types';
 
 type AppRole = Database['public']['Enums']['app_role'];
@@ -23,11 +24,13 @@ const UserManagement = () => {
     setSearchTerm,
     updateUserRole,
     toggleUserStatus,
+    refetchUsers,
   } = useUserManagement();
 
   const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const getRoleBadgeColor = (role: AppRole) => {
     const colors = {
@@ -63,6 +66,14 @@ const UserManagement = () => {
     await toggleUserStatus(user.id, !user.is_active);
   };
 
+  const handleCreateUser = () => {
+    setShowCreateDialog(true);
+  };
+
+  const handleUserCreated = () => {
+    refetchUsers();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -74,9 +85,15 @@ const UserManagement = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h2>
-        <p className="text-gray-600">Administra todos los usuarios del sistema</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h2>
+          <p className="text-gray-600">Administra todos los usuarios del sistema</p>
+        </div>
+        <Button onClick={handleCreateUser} className="bg-green-600 hover:bg-green-700">
+          <Plus className="h-4 w-4 mr-2" />
+          Crear Usuario
+        </Button>
       </div>
 
       {/* Filters */}
@@ -201,6 +218,12 @@ const UserManagement = () => {
           />
         </>
       )}
+      
+      <UserCreateDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onUserCreated={handleUserCreated}
+      />
     </div>
   );
 };

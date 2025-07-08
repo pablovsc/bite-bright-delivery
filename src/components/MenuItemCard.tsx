@@ -28,23 +28,13 @@ const MenuItemCard = ({ item }: MenuItemCardProps) => {
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-white">
-      {/* Popular Badge 
-      {item.rating && item.rating >= 4.5 && (
-        <div className="absolute top-3 left-3 z-10">
-          <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-            ⭐ Popular
-          </span>
-        </div>
-      )}
-        */}
-        
-      {/* Rating Badge */}
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-white relative">
+      {/* Rating Badge - Fixed positioning */}
       {item.rating && item.rating > 0 && (
         <div className="absolute top-3 right-3 z-10">
-          <div className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+          <div className="bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 shadow-sm border">
             <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-            <span className="text-xs font-medium">{item.rating.toFixed(1)}</span>
+            <span className="text-xs font-medium text-gray-700">{item.rating.toFixed(1)}</span>
           </div>
         </div>
       )}

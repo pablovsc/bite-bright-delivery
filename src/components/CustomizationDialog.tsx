@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,6 @@ import { useCart } from '@/hooks/useCart';
 import { toast } from 'sonner';
 import type { CompositeDish } from '@/hooks/useCompositeDishes';
 import type { Tables } from '@/integrations/supabase/types';
-import { supabase } from '@/integrations/supabase/client';
 
 type MenuItem = Tables<'menu_items'>;
 
@@ -122,14 +122,21 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
     setCustomizations(prev => {
       const updated = prev.map(custom => {
         if (custom.elementId === elementId) {
-          const priceDifference = replacementItem.price - originalElement.menu_items.price;
-          // The price adjustment should be the base additional price plus the difference
-          const newPriceAdjustment = (originalElement.additional_price || 0) + priceDifference;
+          // Fixed: Calculate price difference correctly
+          const originalItemPrice = originalElement.menu_items.price;
+          const replacementItemPrice = replacementItem.price;
+          const priceDifference = replacementItemPrice - originalItemPrice;
+          
+          // The price adjustment should be the base additional price plus the price difference
+          const baseAdditionalPrice = originalElement.additional_price || 0;
+          const newPriceAdjustment = baseAdditionalPrice + priceDifference;
           
           console.log('CustomizationDialog - Replacement calculation:', {
             elementId,
+            originalItemPrice,
+            replacementItemPrice,
             priceDifference,
-            originalAdditionalPrice: originalElement.additional_price,
+            baseAdditionalPrice,
             newPriceAdjustment
           });
           

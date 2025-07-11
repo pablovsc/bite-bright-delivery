@@ -38,54 +38,57 @@ const UserCreateDialog = ({ open, onOpenChange, onUserCreated }: UserCreateDialo
 
   const onSubmit = async (data: UserCreateData) => {
     try {
-      // Create user through Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        user_metadata: {
-          full_name: data.full_name,
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        toast({
+          title: "Error",
+          description: "No estás autenticado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call the Edge Function to create the user
+      const { data: result, error } = await supabase.functions.invoke('create-user', {
+        body: data,
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
         },
-        email_confirm: true, // Auto-confirm email
       });
 
-      if (authError) {
-        console.error('Auth error:', authError);
+      if (error) {
+        console.error('Edge function error:', error);
         toast({
           title: "Error",
-          description: `No se pudo crear el usuario: ${authError.message}`,
+          description: `No se pudo crear el usuario: ${error.message}`,
           variant: "destructive",
         });
         return;
       }
 
-      if (!authData.user) {
+      if (result.error) {
         toast({
           title: "Error",
-          description: "No se pudo crear el usuario",
+          description: `No se pudo crear el usuario: ${result.error}`,
           variant: "destructive",
         });
         return;
       }
 
-      // Update the user role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .update({ role: data.role })
-        .eq('user_id', authData.user.id);
-
-      if (roleError) {
-        console.error('Role error:', roleError);
+      if (result.warning) {
         toast({
           title: "Advertencia",
-          description: "Usuario creado pero no se pudo asignar el rol correctamente",
+          description: result.warning,
           variant: "destructive",
         });
+      } else {
+        toast({
+          title: "Éxito",
+          description: "Usuario creado correctamente",
+        });
       }
-
-      toast({
-        title: "Éxito",
-        description: "Usuario creado correctamente",
-      });
 
       form.reset();
       onOpenChange(false);

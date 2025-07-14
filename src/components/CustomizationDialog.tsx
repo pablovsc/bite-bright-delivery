@@ -122,20 +122,21 @@ const CustomizationDialog = ({ dish, isOpen, onClose }: CustomizationDialogProps
     setCustomizations(prev => {
       const updated = prev.map(custom => {
         if (custom.elementId === elementId) {
-          // Fixed: Calculate price difference correctly
-          const originalItemPrice = originalElement.menu_items.price;
-          const replacementItemPrice = replacementItem.price;
-          const priceDifference = replacementItemPrice - originalItemPrice;
+          // Find the replacement option to get the correct price difference
+          const replacementOption = originalElement.dish_replacement_options?.find(
+            option => option.replacement_menu_items.id === replacementItem.id
+          );
+          
+          // Use the price_difference from the replacement option instead of calculating it
+          const priceDifferenceFromOption = replacementOption?.price_difference || 0;
           
           // The price adjustment should be the base additional price plus the price difference
           const baseAdditionalPrice = originalElement.additional_price || 0;
-          const newPriceAdjustment = baseAdditionalPrice + priceDifference;
+          const newPriceAdjustment = baseAdditionalPrice + priceDifferenceFromOption;
           
           console.log('CustomizationDialog - Replacement calculation:', {
             elementId,
-            originalItemPrice,
-            replacementItemPrice,
-            priceDifference,
+            priceDifferenceFromOption,
             baseAdditionalPrice,
             newPriceAdjustment
           });

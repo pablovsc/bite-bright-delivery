@@ -35,6 +35,13 @@ const CompositeDishCard = ({ dish }: CompositeDishCardProps) => {
           </Badge>
         </div>
 
+        {/* Rating Badge - Fixed positioning */}
+        <div className="absolute top-3 right-3 z-10">
+          <div className="bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 shadow-sm border">
+            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+            <span className="text-xs font-medium text-gray-700">5.0</span>
+          </div>
+        </div>
 
         {/* Image */}
         <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative">
